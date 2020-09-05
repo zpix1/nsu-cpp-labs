@@ -19,30 +19,36 @@ enum class Trit {
 class TritSet {
 
 public:
-    int* arr;
+    unsigned int* arr;
     size_t _capacity;
     unsigned int _length;
 
-    static size_t get_trit_cell(unsigned int idx);
+    static size_t get_trit_cell_idx(unsigned int idx);
+    static size_t get_trit_cell_pos(unsigned int idx);
+    static unsigned int set_number_bit(unsigned  int number, unsigned  int idx, unsigned  int value);
 
     Trit get_trit(unsigned int idx) const;
     void set_trit(unsigned int idx, Trit value);
 
-    static constexpr int INT_SIZE = sizeof(int);
+    static constexpr int INT_SIZE = sizeof(unsigned int);
     static constexpr int TRIT_SIZE_IN_BITS = 2;
-
+    static constexpr int TRITS_IN_INT = TritSet::INT_SIZE * 8 / TritSet::TRIT_SIZE_IN_BITS;
 
     // Create TritSet by given length
-    TritSet(const unsigned int length);
+    explicit TritSet(unsigned int length);
 
     // Return internal array size in bytes
     size_t capacity() const;
 
     // Return index of the last non-Unknown trit + 1
-    unsigned int length() const;
+    // Possibly change _length, but never change capacity
+    unsigned int length();
 
     // Forget about trits from new_length
     void trim(unsigned int new_length);
+
+    // Reduce capacity for length
+    void shrink();
 
     // Count trits of given value
     unsigned int cardinality(Trit value) const;
