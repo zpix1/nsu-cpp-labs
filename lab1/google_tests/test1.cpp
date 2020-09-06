@@ -40,12 +40,11 @@ TEST(TritSetTests, doc_tests) {
     // освобождение памяти до начального значения или
     // до значения необходимого для хранения последнего установленного трита
     // в данном случае для трита 1000’000
-//    std::cout << "ed" << set.length() << std::endl;
     set.shrink();
     ASSERT_GT(allocLength, set.capacity());
 }
 
-TEST(TritSetTests, length_capacity_shrink_works) {
+TEST(TritSetTests, length_capacity_shrink) {
     TritSet ts{100};
     ASSERT_EQ(7, ts.capacity());
     ASSERT_EQ(0, ts.length());
@@ -176,4 +175,14 @@ TEST(TritSetTests, cardinality_multi) {
     ASSERT_EQ(3, mp[Trit::True]);
     ASSERT_EQ(2, mp[Trit::False]);
     ASSERT_EQ(1408, mp[Trit::Unknown]);
+}
+
+TEST(TritSetTests, set_get) {
+    TritSet a{0};
+    for (int i = 0; i < 1000; i++) {
+        a[i] = Trit::True;
+    }
+    for (int i = 0; i < 1000; i++) {
+        ASSERT_EQ(Trit::True, static_cast<Trit>(a[i]));
+    }
 }

@@ -33,7 +33,7 @@ class TritSet {
         TritSet &ts;
         size_t idx;
     public:
-        TritProxy(TritSet &ts, int idx);
+        TritProxy(TritSet &ts, size_t idx);
         TritProxy& operator= (Trit value);
         operator Trit();
     };
@@ -68,7 +68,7 @@ public:
     unsigned int cardinality(Trit value) const;
 
     // Count every trit type
-    std::unordered_map<Trit, int, std::hash<Trit> > cardinality();
+    std::unordered_map<Trit, int, std::hash<Trit> > cardinality() const;
 
     TritSet operator~() const;
 

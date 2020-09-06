@@ -172,10 +172,6 @@ TritSet TritSet::operator|(const TritSet &b) const {
     return result;
 }
 
-// TritSet& TritSet::operator&(const TritSet &b) const;
-// TritSet& TritSet::operator|(const TritSet &b) const;
-// Trit& TritSet::operator[](const size_t idx);
-
 TritSet::~TritSet() {
     free(arr);
 }
@@ -219,9 +215,6 @@ void TritSet::trim(size_t new_length) {
     _length = length();
 }
 
-TritSet::TritProxy TritSet::operator[](size_t idx) {
-    return TritProxy(*this, idx);
-}
 
 size_t TritSet::cardinality(Trit value) const {
     size_t cnt = 0;
@@ -233,7 +226,7 @@ size_t TritSet::cardinality(Trit value) const {
     return cnt;
 }
 
-std::unordered_map<Trit, int, std::hash<Trit>> TritSet::cardinality() {
+std::unordered_map<Trit, int, std::hash<Trit>> TritSet::cardinality() const {
     std::unordered_map<Trit, int, std::hash<Trit>> result;
     for (size_t i = 0; i < length(); i++) {
         result[get_trit(i)]++;
@@ -241,8 +234,11 @@ std::unordered_map<Trit, int, std::hash<Trit>> TritSet::cardinality() {
     return result;
 }
 
+TritSet::TritProxy TritSet::operator[](size_t idx) {
+    return TritProxy{*this, idx};
+}
 
-TritSet::TritProxy::TritProxy(TritSet &ts, int idx) : ts(ts), idx(idx) {};
+TritSet::TritProxy::TritProxy(TritSet &ts, size_t idx) : ts(ts), idx(idx) {}
 
 TritSet::TritProxy &TritSet::TritProxy::operator=(Trit value) {
     ts.set_trit(idx, value);
