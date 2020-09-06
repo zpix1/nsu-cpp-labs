@@ -100,21 +100,19 @@ unsigned int TritSet::length() const {
             break;
         }
     }
-
     size_t result_length = 0;
 
     if (!found_nonzero) {
         result_length = 0;
     } else {
         size_t temp_length = cell_idx * TritSet::TRITS_IN_INT;
-        for (size_t i = 0; i < TritSet::TRITS_IN_INT; i++) {
-            if (get_trit(temp_length + i) != Trit::Unknown) {
-                result_length = temp_length + i + 1;
+        for (size_t i = 1; i <= TritSet::TRITS_IN_INT; i++) {
+            if (get_trit(temp_length + TRITS_IN_INT - i) != Trit::Unknown) {
+                result_length = temp_length + TRITS_IN_INT - i + 1;
                 break;
             }
         }
     }
-
     return result_length;
 }
 
@@ -225,10 +223,28 @@ TritSet::TritProxy TritSet::operator[](size_t idx) {
     return TritProxy(*this, idx);
 }
 
+size_t TritSet::cardinality(Trit value) const {
+    size_t cnt = 0;
+    for (size_t i = 0; i < length(); i++) {
+        if (get_trit(i) == value) {
+            cnt++;
+        }
+    }
+    return cnt;
+}
+
+std::unordered_map<Trit, int, std::hash<Trit>> TritSet::cardinality() {
+    std::unordered_map<Trit, int, std::hash<Trit>> result;
+    for (size_t i = 0; i < length(); i++) {
+        result[get_trit(i)]++;
+    }
+    return result;
+}
+
 
 TritSet::TritProxy::TritProxy(TritSet &ts, int idx) : ts(ts), idx(idx) {};
 
-TritSet::TritProxy& TritSet::TritProxy::operator=(Trit value) {
+TritSet::TritProxy &TritSet::TritProxy::operator=(Trit value) {
     ts.set_trit(idx, value);
     return *this;
 }

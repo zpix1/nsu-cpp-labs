@@ -68,7 +68,7 @@ public:
     unsigned int cardinality(Trit value) const;
 
     // Count every trit type
-    std::unordered_map<Trit, int, std::hash<int> > cardinality();
+    std::unordered_map<Trit, int, std::hash<Trit> > cardinality();
 
     TritSet operator~() const;
 

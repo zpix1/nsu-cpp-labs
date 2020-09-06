@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-
+#include <iostream>
 #include "../TritSet.h"
 
 TEST(TritSetTests, set_number_bit) {
@@ -11,7 +11,7 @@ TEST(TritSetTests, set_number_bit) {
 }
 
 TEST(TritSetTests, doc_tests) {
-    TritSet set(1000);
+    TritSet set{1000};
     // length of internal array
     size_t allocLength = set.capacity();
     assert(allocLength >= 1000 * 2 / 8 / sizeof(unsigned int));
@@ -19,7 +19,7 @@ TEST(TritSetTests, doc_tests) {
     // 1000*2 / 8 - min bytes count
     // 1000*2 / 8 / sizeof(uint) - min uint[] size
 
-    //не выделяет никакой памяти
+    // не выделяет никакой памяти
     set[1000000000] = Trit::Unknown;
     ASSERT_EQ(allocLength, set.capacity());
 
@@ -40,12 +40,13 @@ TEST(TritSetTests, doc_tests) {
     // освобождение памяти до начального значения или
     // до значения необходимого для хранения последнего установленного трита
     // в данном случае для трита 1000’000
+//    std::cout << "ed" << set.length() << std::endl;
     set.shrink();
     ASSERT_GT(allocLength, set.capacity());
 }
 
 TEST(TritSetTests, length_capacity_shrink_works) {
-    TritSet ts(100);
+    TritSet ts{100};
     ASSERT_EQ(7, ts.capacity());
     ASSERT_EQ(0, ts.length());
     ts.set_trit(9, Trit::True);
@@ -64,10 +65,13 @@ TEST(TritSetTests, length_capacity_shrink_works) {
     ASSERT_EQ(1, ts.capacity());
     ASSERT_EQ(10, ts.length());
     ASSERT_EQ(Trit::True, ts.get_trit(9));
+    ts.set_trit(1001, Trit::True);
+    ASSERT_EQ(1002, ts.length());
+
 }
 
 TEST(TritSetTests, trim) {
-    TritSet ts(100);
+    TritSet ts{100};
     ASSERT_EQ(7, ts.capacity());
     ts.set_trit(50, Trit::True);
     ts.set_trit(70, Trit::False);
@@ -146,4 +150,30 @@ TEST(TritSetTests, and_capacity_extend) {
     TritSet setB(2000);
     TritSet setC = setA & setB;
     ASSERT_EQ(setC.capacity(), setB.capacity());
+}
+
+TEST(TritSetTests, cardinality_single) {
+    TritSet ts{1000};
+    ASSERT_EQ(63, ts.capacity());
+    ts[1011] = Trit::True;
+    ts[1012] = Trit::False;
+    ASSERT_EQ(1013, ts.length());
+
+    ASSERT_EQ(1, ts.cardinality(Trit::True));
+    ASSERT_EQ(1, ts.cardinality(Trit::False));
+    ASSERT_EQ(1011, ts.cardinality(Trit::Unknown));
+}
+
+TEST(TritSetTests, cardinality_multi) {
+    TritSet ts{1000};
+    ts[1011] = Trit::True;
+    ts[1012] = Trit::False;
+    ts[1112] = Trit::True;
+    ts[1312] = Trit::False;
+    ts[1412] = Trit::True;
+
+    auto mp = ts.cardinality();
+    ASSERT_EQ(3, mp[Trit::True]);
+    ASSERT_EQ(2, mp[Trit::False]);
+    ASSERT_EQ(1408, mp[Trit::Unknown]);
 }
