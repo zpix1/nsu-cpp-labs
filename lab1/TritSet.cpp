@@ -147,5 +147,8 @@ void TritSet::shrink() {
 }
 
 void TritSet::trim(size_t new_length) {
-
+    size_t new_capacity = TritSet::get_trit_cell_idx(new_length);
+    arr = static_cast<unsigned int *>(realloc(arr, new_capacity * TritSet::INT_SIZE));
+    _capacity = new_capacity;
+    length();
 }
