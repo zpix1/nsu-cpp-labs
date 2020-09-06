@@ -39,13 +39,15 @@ public:
 
     // Create TritSet by given length
     explicit TritSet(size_t length);
+    TritSet(TritSet&& other) noexcept ;
+//    TritSet &operator=(const TritSet &b) = delete;
+//    TritSet(const TritSet &b) = delete;
 
     // Return internal array size in bytes
     size_t capacity() const;
 
     // Return index of the last non-Unknown trit + 1
-    // Possibly change _length, but never change capacity
-    unsigned int length();
+    unsigned int length() const;
 
     // Forget about trits from new_length
     void trim(size_t new_length);
@@ -59,11 +61,11 @@ public:
     // Count every trit type
     std::unordered_map<Trit, int, std::hash<int> > cardinality();
 
-    TritSet &operator~() const;
+    TritSet operator~() const;
 
-    TritSet &operator&(const TritSet &b) const;
+    TritSet operator&(const TritSet &b) const;
 
-    TritSet &operator|(const TritSet &b) const;
+    TritSet operator|(const TritSet &b) const;
 
     Trit &operator[](const size_t idx);
 

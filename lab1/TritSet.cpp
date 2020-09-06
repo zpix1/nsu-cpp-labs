@@ -5,6 +5,7 @@
 #include "TritSet.h"
 
 #include <iostream>
+#include <algorithm>
 
 
 TritSet::TritSet(const size_t length) :
@@ -15,7 +16,18 @@ TritSet::TritSet(const size_t length) :
     for (size_t i = 0; i < _capacity; i++) {
         arr[i] = 0;
     }
-};
+}
+
+
+TritSet::TritSet(TritSet &&other) noexcept:
+        _length(other._length),
+        _capacity(other._capacity),
+        arr(other.arr) {
+    other._length = 0;
+    other._capacity = 0;
+    other.arr = nullptr;
+}
+
 
 Trit TritSet::get_trit(const size_t idx) const {
     if (idx >= _length) {
@@ -48,7 +60,7 @@ void TritSet::set_trit(const size_t idx, const Trit value) {
         } else {
             arr = static_cast<unsigned int *>(realloc(arr, (cell_idx + 1) * TritSet::INT_SIZE));
         }
-        for (size_t i = _capacity; i <= cell_idx + 1; i++) {
+        for (size_t i = _capacity; i < cell_idx + 1; i++) {
             arr[i] = 0;
         }
         _capacity = cell_idx + 1;
@@ -78,7 +90,7 @@ size_t TritSet::capacity() const {
     return _capacity;
 }
 
-unsigned int TritSet::length() {
+unsigned int TritSet::length() const {
     size_t cell_idx = 0;
     bool found_nonzero = false;
     for (size_t i = 0; i < _capacity; i++) {
@@ -89,30 +101,84 @@ unsigned int TritSet::length() {
         }
     }
 
+    size_t result_length = 0;
+
     if (!found_nonzero) {
-        _length = 0;
+        result_length = 0;
     } else {
         size_t temp_length = cell_idx * TritSet::TRITS_IN_INT;
         for (size_t i = 0; i < TritSet::TRITS_IN_INT; i++) {
             if (get_trit(temp_length + i) != Trit::Unknown) {
-                _length = temp_length + i + 1;
+                result_length = temp_length + i + 1;
                 break;
             }
         }
     }
 
-    return _length;
+    return result_length;
 }
 
 // void TritSet::trim(unsigned int new_length);
 // unsigned int TritSet::cardinality(Trit value) const;
 // std::unordered_map< Trit, int, std::hash<int> > TritSet::cardinality();
 
-// TritSet& TritSet::operator~() const;
+TritSet TritSet::operator~() const {
+    size_t len = _length;
+    TritSet result{0};
+    for (size_t i = 0; i < len; i++) {
+        Trit old_trit = get_trit(i);
+        Trit new_trit = Trit::Unknown;
+        if (old_trit == Trit::True) {
+            new_trit = Trit::False;
+        } else if (old_trit == Trit::False) {
+            new_trit = Trit::True;
+        }
+        result.set_trit(i, new_trit);
+    }
+    return result;
+}
+
+TritSet TritSet::operator&(const TritSet &b) const {
+    size_t len = std::max(_length, b._length);
+    TritSet result{0};
+    for (size_t i = 0; i < len; i++) {
+        Trit t1 = get_trit(i);
+        Trit t2 = b.get_trit(i);
+        Trit new_trit = Trit::True;
+        if (t1 == Trit::False || t2 == Trit::False) {
+            new_trit = Trit::False;
+        } else if (t1 == Trit::Unknown || t2 == Trit::Unknown) {
+            new_trit = Trit::Unknown;
+        }
+        result.set_trit(i, new_trit);
+    }
+    return result;
+}
+
+TritSet TritSet::operator|(const TritSet &b) const {
+    size_t len = std::max(_length, b._length);
+    TritSet result{0};
+    for (size_t i = 0; i < len; i++) {
+        Trit t1 = get_trit(i);
+        Trit t2 = b.get_trit(i);
+        Trit new_trit = Trit::False;
+        if (t1 == Trit::True || t2 == Trit::True) {
+            new_trit = Trit::True;
+        } else if (t1 == Trit::Unknown || t2 == Trit::Unknown) {
+            new_trit = Trit::Unknown;
+        }
+        result.set_trit(i, new_trit);
+    }
+    return result;
+}
+
 // TritSet& TritSet::operator&(const TritSet &b) const;
 // TritSet& TritSet::operator|(const TritSet &b) const;
 // Trit& TritSet::operator[](const size_t idx);
-TritSet::~TritSet() {}
+
+TritSet::~TritSet() {
+    free(arr);
+}
 
 size_t TritSet::get_trit_cell_idx(size_t idx) {
     return (idx * TritSet::TRIT_SIZE_IN_BITS) / (TritSet::INT_SIZE * 8);
@@ -150,5 +216,7 @@ void TritSet::trim(size_t new_length) {
     size_t new_capacity = TritSet::get_trit_cell_idx(new_length);
     arr = static_cast<unsigned int *>(realloc(arr, new_capacity * TritSet::INT_SIZE));
     _capacity = new_capacity;
-    length();
+    _length = length();
 }
+
+
