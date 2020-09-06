@@ -7,7 +7,7 @@
 #include <iostream>
 
 
-TritSet::TritSet(const unsigned int length) :
+TritSet::TritSet(const size_t length) :
         _length(length),
         _capacity((length * TritSet::TRIT_SIZE_IN_BITS + TritSet::INT_SIZE * 8 - 1) / (TritSet::INT_SIZE * 8)),
         arr(nullptr) {
@@ -17,7 +17,7 @@ TritSet::TritSet(const unsigned int length) :
     }
 };
 
-Trit TritSet::get_trit(const unsigned int idx) const {
+Trit TritSet::get_trit(const size_t idx) const {
     if (idx >= _length) {
         return Trit::Unknown;
     }
@@ -36,7 +36,7 @@ Trit TritSet::get_trit(const unsigned int idx) const {
     }
 }
 
-void TritSet::set_trit(const unsigned int idx, const Trit value) {
+void TritSet::set_trit(const size_t idx, const Trit value) {
     if (idx >= _length && value == Trit::Unknown) {
         return;
     }
@@ -114,11 +114,11 @@ unsigned int TritSet::length() {
 // Trit& TritSet::operator[](const size_t idx);
 TritSet::~TritSet() {}
 
-size_t TritSet::get_trit_cell_idx(unsigned int idx) {
+size_t TritSet::get_trit_cell_idx(size_t idx) {
     return (idx * TritSet::TRIT_SIZE_IN_BITS) / (TritSet::INT_SIZE * 8);
 }
 
-size_t TritSet::get_trit_cell_pos(unsigned int idx) {
+size_t TritSet::get_trit_cell_pos(size_t idx) {
     return ((idx * TritSet::TRIT_SIZE_IN_BITS) % (TritSet::INT_SIZE * 8));
 }
 
@@ -144,4 +144,8 @@ void TritSet::shrink() {
     }
 
     _capacity = cell_idx + 1;
+}
+
+void TritSet::trim(size_t new_length) {
+
 }

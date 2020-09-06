@@ -19,23 +19,26 @@ enum class Trit {
 class TritSet {
 
 public:
-    unsigned int* arr;
+    unsigned int *arr;
     size_t _capacity;
     unsigned int _length;
 
-    static size_t get_trit_cell_idx(unsigned int idx);
-    static size_t get_trit_cell_pos(unsigned int idx);
-    static unsigned int set_number_bit(unsigned  int number, unsigned  int idx, unsigned  int value);
+    static size_t get_trit_cell_idx(size_t idx);
 
-    Trit get_trit(unsigned int idx) const;
-    void set_trit(unsigned int idx, Trit value);
+    static size_t get_trit_cell_pos(size_t idx);
+
+    static unsigned int set_number_bit(unsigned int number, unsigned int idx, unsigned int value);
+
+    Trit get_trit(size_t idx) const;
+
+    void set_trit(size_t idx, Trit value);
 
     static constexpr int INT_SIZE = sizeof(unsigned int);
     static constexpr int TRIT_SIZE_IN_BITS = 2;
     static constexpr int TRITS_IN_INT = TritSet::INT_SIZE * 8 / TritSet::TRIT_SIZE_IN_BITS;
 
     // Create TritSet by given length
-    explicit TritSet(unsigned int length);
+    explicit TritSet(size_t length);
 
     // Return internal array size in bytes
     size_t capacity() const;
@@ -45,7 +48,7 @@ public:
     unsigned int length();
 
     // Forget about trits from new_length
-    void trim(unsigned int new_length);
+    void trim(size_t new_length);
 
     // Reduce capacity for length
     void shrink();
@@ -54,12 +57,15 @@ public:
     unsigned int cardinality(Trit value) const;
 
     // Count every trit type
-    std::unordered_map< Trit, int, std::hash<int> > cardinality();
+    std::unordered_map<Trit, int, std::hash<int> > cardinality();
 
-    TritSet& operator~() const;
-    TritSet& operator&(const TritSet &b) const;
-    TritSet& operator|(const TritSet &b) const;
-    Trit& operator[](const size_t idx);
+    TritSet &operator~() const;
+
+    TritSet &operator&(const TritSet &b) const;
+
+    TritSet &operator|(const TritSet &b) const;
+
+    Trit &operator[](const size_t idx);
 
     ~TritSet();
 };
