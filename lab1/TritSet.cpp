@@ -33,7 +33,7 @@ Trit TritSet::get_trit(const size_t idx) const {
     if (idx >= _length) {
         return Trit::Unknown;
     }
-    size_t cell_idx = TritSet::get_trit_cell_idx(idx);;
+    size_t cell_idx = TritSet::get_trit_cell_idx(idx);
     unsigned int cell_pos_in_bits = TritSet::get_trit_cell_pos(idx);
     unsigned int bit_value = (arr[cell_idx] >> cell_pos_in_bits) & 0b11u;
     switch (bit_value) {
@@ -124,7 +124,7 @@ unsigned int TritSet::length() const {
 
 TritSet TritSet::operator~() const {
     size_t len = _length;
-    TritSet result{0};
+    TritSet result{_capacity * TritSet::TRITS_IN_INT};
     for (size_t i = 0; i < len; i++) {
         Trit old_trit = get_trit(i);
         Trit new_trit = Trit::Unknown;
@@ -140,7 +140,8 @@ TritSet TritSet::operator~() const {
 
 TritSet TritSet::operator&(const TritSet &b) const {
     size_t len = std::max(_length, b._length);
-    TritSet result{0};
+    size_t cap = std::max(_capacity, b._capacity);
+    TritSet result{cap * TritSet::TRITS_IN_INT};
     for (size_t i = 0; i < len; i++) {
         Trit t1 = get_trit(i);
         Trit t2 = b.get_trit(i);
@@ -157,7 +158,8 @@ TritSet TritSet::operator&(const TritSet &b) const {
 
 TritSet TritSet::operator|(const TritSet &b) const {
     size_t len = std::max(_length, b._length);
-    TritSet result{0};
+    size_t cap = std::max(_capacity, b._capacity);
+    TritSet result{cap * TritSet::TRITS_IN_INT};
     for (size_t i = 0; i < len; i++) {
         Trit t1 = get_trit(i);
         Trit t2 = b.get_trit(i);
@@ -219,4 +221,18 @@ void TritSet::trim(size_t new_length) {
     _length = length();
 }
 
+TritSet::TritProxy TritSet::operator[](size_t idx) {
+    return TritProxy(*this, idx);
+}
 
+
+TritSet::TritProxy::TritProxy(TritSet &ts, int idx) : ts(ts), idx(idx) {};
+
+TritSet::TritProxy& TritSet::TritProxy::operator=(Trit value) {
+    ts.set_trit(idx, value);
+    return *this;
+}
+
+TritSet::TritProxy::operator Trit() {
+    return ts.get_trit(idx);
+}

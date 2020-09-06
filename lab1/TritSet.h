@@ -17,8 +17,10 @@ enum class Trit {
 };
 
 class TritSet {
+    static constexpr int INT_SIZE = sizeof(unsigned int);
+    static constexpr int TRIT_SIZE_IN_BITS = 2;
+    static constexpr int TRITS_IN_INT = TritSet::INT_SIZE * 8 / TritSet::TRIT_SIZE_IN_BITS;
 
-public:
     unsigned int *arr;
     size_t _capacity;
     unsigned int _length;
@@ -27,21 +29,28 @@ public:
 
     static size_t get_trit_cell_pos(size_t idx);
 
+    class TritProxy {
+        TritSet &ts;
+        size_t idx;
+    public:
+        TritProxy(TritSet &ts, int idx);
+        TritProxy& operator= (Trit value);
+        operator Trit();
+    };
+
+public:
+    // Set number bit to value (0 or 1)
     static unsigned int set_number_bit(unsigned int number, unsigned int idx, unsigned int value);
 
     Trit get_trit(size_t idx) const;
 
     void set_trit(size_t idx, Trit value);
 
-    static constexpr int INT_SIZE = sizeof(unsigned int);
-    static constexpr int TRIT_SIZE_IN_BITS = 2;
-    static constexpr int TRITS_IN_INT = TritSet::INT_SIZE * 8 / TritSet::TRIT_SIZE_IN_BITS;
-
     // Create TritSet by given length
     explicit TritSet(size_t length);
-    TritSet(TritSet&& other) noexcept ;
-//    TritSet &operator=(const TritSet &b) = delete;
-//    TritSet(const TritSet &b) = delete;
+    ~TritSet();
+
+    TritSet(TritSet &&other) noexcept;
 
     // Return internal array size in bytes
     size_t capacity() const;
@@ -67,9 +76,7 @@ public:
 
     TritSet operator|(const TritSet &b) const;
 
-    Trit &operator[](const size_t idx);
-
-    ~TritSet();
+    TritProxy operator[](size_t idx);
 };
 
 #endif //LAB1_TRITSET_H
