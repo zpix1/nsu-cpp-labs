@@ -117,14 +117,7 @@ TritSet TritSet::operator~() const {
     size_t len = _length;
     TritSet result{_capacity * TritSet::TRITS_IN_INT};
     for (size_t i = 0; i < len; i++) {
-        Trit old_trit = get_trit(i);
-        Trit new_trit = Trit::Unknown;
-        if (old_trit == Trit::True) {
-            new_trit = Trit::False;
-        } else if (old_trit == Trit::False) {
-            new_trit = Trit::True;
-        }
-        result.set_trit(i, new_trit);
+        result.set_trit(i, ~get_trit(i));
     }
     return result;
 }
@@ -134,15 +127,7 @@ TritSet TritSet::operator&(const TritSet &b) const {
     size_t cap = std::max(_capacity, b._capacity);
     TritSet result{cap * TritSet::TRITS_IN_INT};
     for (size_t i = 0; i < len; i++) {
-        Trit t1 = get_trit(i);
-        Trit t2 = b.get_trit(i);
-        Trit new_trit = Trit::True;
-        if (t1 == Trit::False || t2 == Trit::False) {
-            new_trit = Trit::False;
-        } else if (t1 == Trit::Unknown || t2 == Trit::Unknown) {
-            new_trit = Trit::Unknown;
-        }
-        result.set_trit(i, new_trit);
+        result.set_trit(i, get_trit(i) & b.get_trit(i));
     }
     return result;
 }
@@ -152,15 +137,7 @@ TritSet TritSet::operator|(const TritSet &b) const {
     size_t cap = std::max(_capacity, b._capacity);
     TritSet result{cap * TritSet::TRITS_IN_INT};
     for (size_t i = 0; i < len; i++) {
-        Trit t1 = get_trit(i);
-        Trit t2 = b.get_trit(i);
-        Trit new_trit = Trit::False;
-        if (t1 == Trit::True || t2 == Trit::True) {
-            new_trit = Trit::True;
-        } else if (t1 == Trit::Unknown || t2 == Trit::Unknown) {
-            new_trit = Trit::Unknown;
-        }
-        result.set_trit(i, new_trit);
+        result.set_trit(i, get_trit(i) | b.get_trit(i));
     }
     return result;
 }
@@ -243,4 +220,34 @@ TritSet::TritProxy &TritSet::TritProxy::operator=(Trit value) {
 
 TritSet::TritProxy::operator Trit() {
     return ts.get_trit(idx);
+}
+
+Trit operator~(Trit t1) {
+    if (t1 == Trit::True) {
+        return Trit::False;
+    }
+    if (t1 == Trit::False) {
+        return Trit::True;
+    }
+    return Trit::Unknown;
+}
+
+Trit operator&(Trit t1, Trit t2) {
+    if (t1 == Trit::False || t2 == Trit::False) {
+        return Trit::False;
+    }
+    if (t1 == Trit::Unknown || t2 == Trit::Unknown) {
+        return Trit::Unknown;
+    }
+    return Trit::True;
+}
+
+Trit operator|(Trit t1, Trit t2) {
+    if (t1 == Trit::True || t2 == Trit::True) {
+        return Trit::True;
+    }
+    if (t1 == Trit::Unknown || t2 == Trit::Unknown) {
+        return Trit::Unknown;
+    }
+    return Trit::False;
 }

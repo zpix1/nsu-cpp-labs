@@ -12,6 +12,10 @@ enum class Trit {
     True = 1
 };
 
+Trit operator~(Trit t1);
+Trit operator&(Trit t1, Trit t2);
+Trit operator|(Trit t1, Trit t2);
+
 class TritSet {
     static constexpr int INT_SIZE = sizeof(unsigned int);
     static constexpr int TRIT_SIZE_IN_BITS = 2;
