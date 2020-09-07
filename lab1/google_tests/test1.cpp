@@ -186,3 +186,7 @@ TEST(TritSetTests, set_get) {
         ASSERT_EQ(Trit::True, static_cast<Trit>(a[i]));
     }
 }
+
+TEST(TritSetTests, false_test) {
+    ASSERT_TRUE(false);
+}
