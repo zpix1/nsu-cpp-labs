@@ -1,7 +1,3 @@
-//
-// Created by John on 05.09.2020.
-//
-
 #include "TritSet.h"
 
 #include <iostream>
@@ -100,6 +96,7 @@ unsigned int TritSet::length() const {
             break;
         }
     }
+
     size_t result_length = 0;
 
     if (!found_nonzero) {
@@ -115,10 +112,6 @@ unsigned int TritSet::length() const {
     }
     return result_length;
 }
-
-// void TritSet::trim(unsigned int new_length);
-// unsigned int TritSet::cardinality(Trit value) const;
-// std::unordered_map< Trit, int, std::hash<int> > TritSet::cardinality();
 
 TritSet TritSet::operator~() const {
     size_t len = _length;
@@ -191,10 +184,14 @@ unsigned int TritSet::set_number_bit(unsigned int number, unsigned int idx, unsi
 
 void TritSet::shrink() {
     size_t start_length = length();
+    size_t cell_idx = TritSet::get_trit_cell_idx(start_length - 1);
     if (start_length == 0) {
+        arr = static_cast<unsigned int *>(realloc(arr, (0) * TritSet::INT_SIZE));
+        _capacity = 0;
+        _length = 0;
         return;
     }
-    size_t cell_idx = TritSet::get_trit_cell_idx(start_length - 1);
+
     arr = static_cast<unsigned int *>(realloc(arr, (cell_idx + 1) * TritSet::INT_SIZE));
 
     size_t temp_length = cell_idx * TritSet::INT_SIZE * 8 / TritSet::TRIT_SIZE_IN_BITS;
@@ -214,7 +211,6 @@ void TritSet::trim(size_t new_length) {
     _capacity = new_capacity;
     _length = length();
 }
-
 
 size_t TritSet::cardinality(Trit value) const {
     size_t cnt = 0;

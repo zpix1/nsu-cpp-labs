@@ -1,7 +1,3 @@
-//
-// Created by John on 05.09.2020.
-//
-
 #ifndef LAB1_TRITSET_H
 #define LAB1_TRITSET_H
 
@@ -42,8 +38,10 @@ public:
     // Set number bit to value (0 or 1)
     static unsigned int set_number_bit(unsigned int number, unsigned int idx, unsigned int value);
 
+    // Give trit value at idx; same as TritSet[idx] operation
     Trit get_trit(size_t idx) const;
 
+    // Set trit value at idx; same as TritSet[idx] = value operation
     void set_trit(size_t idx, Trit value);
 
     // Create TritSet by given length
@@ -52,7 +50,7 @@ public:
 
     TritSet(TritSet &&other) noexcept;
 
-    // Return internal array size in bytes
+    // Return internal array size in ints
     size_t capacity() const;
 
     // Return index of the last non-Unknown trit + 1
@@ -70,10 +68,13 @@ public:
     // Count every trit type
     std::unordered_map<Trit, int, std::hash<Trit> > cardinality() const;
 
+    // Return a new TritSet - the result of tritwise NOT operator
     TritSet operator~() const;
 
+    // Return a new TritSet - the result of tritwise AND operator
     TritSet operator&(const TritSet &b) const;
 
+    // Return a new TritSet - the result of tritwise OR operator
     TritSet operator|(const TritSet &b) const;
 
     TritProxy operator[](size_t idx);
