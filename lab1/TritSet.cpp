@@ -122,7 +122,7 @@ TritSet TritSet::operator~() const {
     return result;
 }
 
-TritSet TritSet::operator&(const TritSet &b) const {
+TritSet TritSet::operator&(const TritSet& b) const {
     size_t len = std::max(_length, b._length);
     size_t cap = std::max(_capacity, b._capacity);
     TritSet result{cap * TritSet::TRITS_IN_INT};
@@ -132,7 +132,7 @@ TritSet TritSet::operator&(const TritSet &b) const {
     return result;
 }
 
-TritSet TritSet::operator|(const TritSet &b) const {
+TritSet TritSet::operator|(const TritSet& b) const {
     size_t len = std::max(_length, b._length);
     size_t cap = std::max(_capacity, b._capacity);
     TritSet result{cap * TritSet::TRITS_IN_INT};

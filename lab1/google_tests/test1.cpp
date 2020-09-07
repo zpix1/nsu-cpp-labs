@@ -177,12 +177,30 @@ TEST(TritSetTests, cardinality_multi) {
     ASSERT_EQ(1408, mp[Trit::Unknown]);
 }
 
-TEST(TritSetTests, set_get) {
+TEST(TritSetTests, set_get_not_and_or) {
     TritSet a{0};
     for (int i = 0; i < 1000; i++) {
-        a[i] = Trit::True;
+        a[i] = Trit::False;
+    }
+    for (int i = 0; i < 1000; i++) {
+        a[i] = a[i] & Trit::True;
+    }
+    for (int i = 0; i < 1000; i++) {
+        ASSERT_EQ(Trit::False, static_cast<Trit>(a[i]));
+    }
+    for (int i = 0; i < 1000; i++) {
+        a[i] = ~a[i];
     }
     for (int i = 0; i < 1000; i++) {
         ASSERT_EQ(Trit::True, static_cast<Trit>(a[i]));
+    }
+    for (int i = 0; i < 1000; i++) {
+        a[i] = ~a[i];
+    }
+    for (int i = 0; i < 1000; i++) {
+        a[i] = a[i] | Trit::Unknown;
+    }
+    for (int i = 0; i < 1000; i++) {
+        ASSERT_EQ(Trit::Unknown, static_cast<Trit>(a[i]));
     }
 }

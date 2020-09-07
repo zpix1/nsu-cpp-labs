@@ -30,7 +30,7 @@ class TritSet {
     static size_t get_trit_cell_pos(size_t idx);
 
     class TritProxy {
-        TritSet &ts;
+        TritSet& ts;
         size_t idx;
     public:
         TritProxy(TritSet &ts, size_t idx);
@@ -76,10 +76,10 @@ public:
     TritSet operator~() const;
 
     // Return a new TritSet - the result of tritwise AND operator
-    TritSet operator&(const TritSet &b) const;
+    TritSet operator&(const TritSet& b) const;
 
     // Return a new TritSet - the result of tritwise OR operator
-    TritSet operator|(const TritSet &b) const;
+    TritSet operator|(const TritSet& b) const;
 
     TritProxy operator[](size_t idx);
 };
