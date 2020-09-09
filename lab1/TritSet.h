@@ -58,7 +58,7 @@ public:
     size_t capacity() const;
 
     // Return index of the last non-Unknown trit + 1
-    unsigned int length() const;
+    size_t length() const;
 
     // Forget about trits from new_length
     void trim(size_t new_length);
@@ -67,7 +67,7 @@ public:
     void shrink();
 
     // Count trits of given value
-    unsigned int cardinality(Trit value) const;
+    size_t cardinality(Trit value) const;
 
     // Count every trit type
     std::unordered_map<Trit, int, std::hash<Trit> > cardinality() const;
