@@ -86,7 +86,7 @@ size_t TritSet::capacity() const {
     return _capacity;
 }
 
-unsigned int TritSet::length() const {
+size_t TritSet::length() const {
     size_t cell_idx = 0;
     bool found_nonzero = false;
     for (size_t i = 0; i < _capacity; i++) {
