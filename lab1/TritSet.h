@@ -70,7 +70,7 @@ public:
     size_t cardinality(Trit value) const;
 
     // Count every trit type
-    std::unordered_map<Trit, int, std::hash<Trit> > cardinality() const;
+    std::unordered_map<Trit, size_t, std::hash<Trit> > cardinality() const;
 
     // Return a new TritSet - the result of tritwise NOT operator
     TritSet operator~() const;
@@ -82,6 +82,7 @@ public:
     TritSet operator|(const TritSet& b) const;
 
     TritProxy operator[](size_t idx);
+    Trit operator[](size_t idx) const;
 };
 
 #endif //LAB1_TRITSET_H

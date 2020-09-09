@@ -199,8 +199,8 @@ size_t TritSet::cardinality(Trit value) const {
     return cnt;
 }
 
-std::unordered_map<Trit, int, std::hash<Trit>> TritSet::cardinality() const {
-    std::unordered_map<Trit, int, std::hash<Trit>> result;
+std::unordered_map<Trit, size_t, std::hash<Trit>> TritSet::cardinality() const {
+    std::unordered_map<Trit, size_t, std::hash<Trit>> result;
     for (size_t i = 0; i < length(); i++) {
         result[get_trit(i)]++;
     }
@@ -209,6 +209,10 @@ std::unordered_map<Trit, int, std::hash<Trit>> TritSet::cardinality() const {
 
 TritSet::TritProxy TritSet::operator[](size_t idx) {
     return TritProxy{*this, idx};
+}
+
+Trit TritSet::operator[](size_t idx) const {
+    return get_trit(idx);
 }
 
 TritSet::TritProxy::TritProxy(TritSet &ts, size_t idx) : ts(ts), idx(idx) {}
