@@ -4,6 +4,8 @@
 #include <iostream>
 #include <algorithm>
 
+using namespace Workflow;
+
 void ReadfileWorker::run_operation(Context& context) {
     auto input = std::ifstream(context.arguments[0]);
     std::string str;
@@ -14,7 +16,7 @@ void ReadfileWorker::run_operation(Context& context) {
 
 void WritefileWorker::run_operation(Context& context) {
     auto output = std::ofstream(context.arguments[0]);
-    for (auto str: context.text) {
+    for (const auto& str: context.text) {
         output << str << std::endl;
     }
 }
@@ -22,7 +24,7 @@ void WritefileWorker::run_operation(Context& context) {
 void GrepWorker::run_operation(Context& context) {
     auto grepstr = context.arguments[0];
     TextContainer new_text;
-    for (auto str: context.text) {
+    for (const auto& str: context.text) {
         if (str.find(grepstr) != std::string::npos) {
             new_text.push_back(str);
         }
@@ -35,7 +37,7 @@ void SortWorker::run_operation(Context& context) {
 }
 
 // !TODO: replace it with regex way
-void replace_all(std::string& str, std::string replace_from, std::string replace_to) {
+void replace_all(std::string& str, const std::string& replace_from, const std::string& replace_to) {
     std::size_t pos = str.find(replace_from);
     while (pos != std::string::npos) {
         str.replace(pos, replace_from.length(), replace_to);
@@ -53,7 +55,7 @@ void ReplaceWorker::run_operation(Context& context) {
 
 void DumpWorker::run_operation(Context& context) {
     auto output = std::ofstream(context.arguments[0]);
-    for (auto str: context.text) {
+    for (const auto& str: context.text) {
         output << str << std::endl;
     }
 }
@@ -67,14 +69,31 @@ Scheme WorkflowExecutor::parse(const TextContainer& text) const {
     Scheme scheme;
     for (auto i = 1; text[i] != "csed"; i++) {
         auto pos = text[i].find(delimiter);
-        if (pos != std::string::npos) throw Workflow::UnexpectedLine("delimiter not found", i);
+        if (pos == std::string::npos) throw Workflow::UnexpectedLine("delimiter not found", i);
         
         auto id_str = text[i].substr(0, pos);
         auto worker_with_arguments = text[i].substr(pos + delimiter.length(), text[i].length());
         
-        //!TODO
-        
+        //!TODO: Parsing
         // csed should appear
         if (i + 1 == text.size()) throw Workflow::UnexpectedLine("csed expected, but not found", i);      
     }
+
+    return scheme;
+}
+
+void WorkflowExecutor::validate(const Scheme &scheme) const {
+
+}
+
+Mode WorkflowExecutor::check_mode(const Scheme &scheme) const {
+    return Mode::CmdlineFlagMode;
+}
+
+void WorkflowExecutor::execute(const Scheme &scheme, std::ifstream input, std::ofstream output) {
+
+}
+
+void WorkflowExecutor::execute(const Scheme &scheme) {
+
 }

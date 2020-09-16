@@ -3,6 +3,8 @@
 
 #include "../Worker.h"
 
+using namespace Workflow;
+
 const std::string TEMP_FILENAME{ "temp.txt" };
 
 TEST_CASE("GrepWorkerTest", "[worker]") {
@@ -73,4 +75,18 @@ TEST_CASE("DumpWorkerTest", "[worker]") {
     REQUIRE(s == "aabcdefa");
     std::getline(f, s);
     REQUIRE(s == "zzzz");
+}
+
+TEST_CASE("WorkflowExecutorTest", "[worker]") {
+    TextContainer instructions{
+        "desc",
+        "1 = readfile in.txt",
+        "2 = grep aaa",
+        "3 = sort",
+        "4 = writefile out.txt",
+        "csed",
+        "1 -> 2 -> 3 -> 4"
+    };
+    WorkflowExecutor w;
+    Scheme s = w.parse(instructions);
 }
