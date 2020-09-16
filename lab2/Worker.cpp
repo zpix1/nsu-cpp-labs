@@ -57,3 +57,24 @@ void DumpWorker::run_operation(Context& context) {
         output << str << std::endl;
     }
 }
+
+Scheme WorkflowExecutor::parse(const TextContainer& text) const {
+    const std::string delimiter = " = ";
+    
+    // First line show be desc
+    if (text[0] != "desc") throw Workflow::UnexpectedLine("desc tag in first line expected", 0);
+
+    Scheme scheme;
+    for (auto i = 1; text[i] != "csed"; i++) {
+        auto pos = text[i].find(delimiter);
+        if (pos != std::string::npos) throw Workflow::UnexpectedLine("delimiter not found", i);
+        
+        auto id_str = text[i].substr(0, pos);
+        auto worker_with_arguments = text[i].substr(pos + delimiter.length(), text[i].length());
+        
+        //!TODO
+        
+        // csed should appear
+        if (i + 1 == text.size()) throw Workflow::UnexpectedLine("csed expected, but not found", i);      
+    }
+}
