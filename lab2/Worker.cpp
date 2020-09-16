@@ -1,7 +1,3 @@
-//
-// Created by John on 12.09.2020.
-//
-
 #include "Worker.h"
 
 #include <fstream>
