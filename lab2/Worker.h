@@ -9,19 +9,6 @@
 
 using TextContainer = std::vector<std::string>;
 using ArgumentList = std::vector<std::string>;
-using Scheme = std::vector<Worker>;
-
-class Parser {
-    virtual Scheme parse(TextContainer text) = 0;
-}
-
-class Validator {
-    virtual void validate(Scheme scheme) = 0;
-};
-
-class Execute {
-    virtual std::ofstream execute(std::ifstream input);
-};
 
 struct Context {
     ArgumentList arguments;
@@ -32,6 +19,22 @@ class Worker {
 public:
     virtual void run_operation(Context& context) = 0;
 };
+
+using Scheme = std::vector<Worker>;
+
+class Parser {
+    virtual Scheme parse(TextContainer text) = 0;
+};
+
+class Validator {
+    virtual void validate(Scheme scheme) = 0;
+};
+
+class Execute {
+    virtual std::ofstream execute(std::ifstream input);
+};
+
+
 
 class ReadfileWorker : public Worker {
 public:

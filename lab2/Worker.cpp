@@ -1,6 +1,7 @@
 #include "Worker.h"
 
 #include <fstream>
+#include <iostream>
 #include <algorithm>
 
 void ReadfileWorker::run_operation(Context& context) {
@@ -33,12 +34,20 @@ void SortWorker::run_operation(Context& context) {
     std::sort(context.text.begin(), context.text.end());
 }
 
+// !TODO: replace it with regex way
+void replace_all(std::string& str, std::string replace_from, std::string replace_to) {
+    std::size_t pos = str.find(replace_from);
+    while (pos != std::string::npos) {
+        str.replace(pos, replace_from.length(), replace_to);
+        pos = str.find(replace_from);
+    }
+}
+
 void ReplaceWorker::run_operation(Context& context) {
     auto replace_from = context.arguments[0];
     auto replace_to = context.arguments[1];
-    
-    for (auto str: context.text) {
-        str.replace(s.find(replace_from), replace_from.length(), replace_to);
+    for (auto& str: context.text) {
+        replace_all(str, replace_from, replace_to);
     }
 }
 
