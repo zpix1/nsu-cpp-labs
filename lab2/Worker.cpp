@@ -2,12 +2,14 @@
 
 #include <fstream>
 
-void ReadfileWorker::execute() {
-    auto input = std::ifstream(argument);
-    std::vector<std::string> text_values;
+void ReadfileWorker::run_operation(Context& context) {
+    auto input = std::ifstream(context.arguments[0]);
     std::string str;
     while (std::getline(input, str)) {
-        text_values.push_back(str);
+        context.text.push_back(str);
     }
-    text = std::make_shared<std::vector<std::string>>(text_values);
+}
+
+void ReadfileWorker::run_operation(Context& context) {
+
 }
