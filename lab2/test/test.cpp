@@ -90,7 +90,3 @@ TEST_CASE("WorkflowExecutorTest", "[worker]") {
     WorkflowExecutor w;
     Scheme s = w.parse(instructions);
 }
-
-TEST_CASE("Failed test", "[worker]") {
-    REQUIRE(2+2 == 5);
-}
