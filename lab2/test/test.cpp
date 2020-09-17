@@ -92,12 +92,23 @@ TEST_CASE("WorkflowExecutorTest", "[worker]") {
         "csed",
         "1 -> 2 -> 3 -> 5 -> 4"
     };
-    WorkflowExecutor w;
-    Scheme s = w.parse(instructions);
-    REQUIRE(s.execution_flow == std::vector<int>{1, 2, 3, 5, 4});
-    REQUIRE(s.id2worker[1].second == ArgumentList{"in.txt"});
-    REQUIRE(s.id2worker[2].second == ArgumentList{"aaa"});
-    REQUIRE(s.id2worker[3].second == ArgumentList{});
-    REQUIRE(s.id2worker[4].second == ArgumentList{"out.txt"});
-    REQUIRE(s.id2worker[5].second == ArgumentList{"abcd", "dcba"});
+
+    WorkflowExecutor worker;
+    Scheme scheme;
+    scheme = worker.parse(instructions);
+    SECTION("parses correctly") {
+        REQUIRE(scheme.execution_flow == std::vector<WorkerID>{1, 2, 3, 5, 4});
+        REQUIRE(scheme.id2worker[1].second == ArgumentList{"in.txt"});
+        REQUIRE(scheme.id2worker[2].second == ArgumentList{"aaa"});
+        REQUIRE(scheme.id2worker[3].second.empty());
+        REQUIRE(scheme.id2worker[4].second == ArgumentList{"out.txt"});
+        REQUIRE(scheme.id2worker[5].second == ArgumentList{"abcd", "dcba"});
+    }
+    InputOutputMode mode;
+    SECTION("validates correctly") {
+        auto validation_result = worker.validate(scheme, InputOutputMode::FileMode);
+        REQUIRE(validation_result == true);
+        mode = worker.check_mode(scheme);
+        REQUIRE(mode == InputOutputMode::FileMode);
+    }
 }

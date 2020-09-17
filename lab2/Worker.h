@@ -15,9 +15,10 @@ namespace Workflow {
     using ArgumentList = std::vector<std::string>;
     using WorkerID = int;
 
-    enum class Mode {
+    enum class InputOutputMode {
         FileMode,
-        CmdlineFlagMode
+        CmdlineFlagMode,
+        None
     };
 
     struct Context {
@@ -28,6 +29,7 @@ namespace Workflow {
     class Worker {
     public:
         virtual void run_operation(Context &context) = 0;
+        virtual bool check_arguments(const ArgumentList& arguments) = 0;
     };
 
     struct Scheme {
@@ -40,9 +42,9 @@ namespace Workflow {
     };
 
     class Validator {
-        virtual void validate(const Scheme &scheme) const = 0;
+        virtual bool validate(const Scheme &scheme, const InputOutputMode mode) const = 0;
 
-        [[nodiscard]] virtual Mode check_mode(const Scheme &scheme) const = 0;
+        [[nodiscard]] virtual InputOutputMode check_mode(const Scheme &scheme) const = 0;
     };
 
     class Executor {
@@ -57,9 +59,9 @@ namespace Workflow {
     public:
         [[nodiscard]] Scheme parse(const TextContainer &text) const override;
 
-        void validate(const Scheme &scheme) const override;
+        bool validate(const Scheme &scheme, const InputOutputMode mode) const override;
 
-        Mode check_mode(const Scheme &scheme) const override;
+        InputOutputMode check_mode(const Scheme &scheme) const override;
 
         void execute(const Scheme &scheme, std::ifstream input, std::ofstream output) override;
 
@@ -69,31 +71,49 @@ namespace Workflow {
     class ReadfileWorker : public Worker {
     public:
         void run_operation(Context &context) override;
+        inline bool check_arguments(const ArgumentList& arguments) override {
+            return arguments.size() == 1;
+        };
     };
 
     class WritefileWorker : public Worker {
     public:
         void run_operation(Context &context) override;
+        inline bool check_arguments(const ArgumentList& arguments) override {
+            return arguments.size() == 1;
+        };
     };
 
     class GrepWorker : public Worker {
     public:
         void run_operation(Context &context) override;
+        inline bool check_arguments(const ArgumentList& arguments) override {
+            return arguments.size() == 1;
+        };
     };
 
     class SortWorker : public Worker {
     public:
         void run_operation(Context &context) override;
+        inline bool check_arguments(const ArgumentList& arguments) override {
+            return arguments.size() == 0;
+        };
     };
 
     class ReplaceWorker : public Worker {
     public:
         void run_operation(Context &context) override;
+        inline bool check_arguments(const ArgumentList& arguments) override {
+            return arguments.size() == 2;
+        };
     };
 
     class DumpWorker : public Worker {
     public:
         void run_operation(Context &context) override;
+        inline bool check_arguments(const ArgumentList& arguments) override {
+            return arguments.size() == 1;
+        };
     };
 }
 
