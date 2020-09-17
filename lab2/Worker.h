@@ -28,13 +28,12 @@ namespace Workflow {
     };
 
     struct Context {
-        const ArgumentList& arguments;
         TextContainer text;
     };
 
     class Worker {
     public:
-        virtual void run_operation(Context &context) = 0;
+        virtual void run_operation(const ArgumentList &arguments, Context &context) = 0;
         virtual bool check_arguments(const ArgumentList& arguments) = 0;
     };
 
@@ -72,7 +71,7 @@ namespace Workflow {
 
     class ReadfileWorker : public Worker {
     public:
-        void run_operation(Context &context) override;
+        void run_operation(const ArgumentList &arguments, Context &context) override;
         inline bool check_arguments(const ArgumentList& arguments) override {
             return arguments.size() == 1;
         };
@@ -80,7 +79,7 @@ namespace Workflow {
 
     class WritefileWorker : public Worker {
     public:
-        void run_operation(Context &context) override;
+        void run_operation(const ArgumentList &arguments, Context &context) override;
         inline bool check_arguments(const ArgumentList& arguments) override {
             return arguments.size() == 1;
         };
@@ -88,7 +87,7 @@ namespace Workflow {
 
     class GrepWorker : public Worker {
     public:
-        void run_operation(Context &context) override;
+        void run_operation(const ArgumentList &arguments, Context &context) override;
         inline bool check_arguments(const ArgumentList& arguments) override {
             return arguments.size() == 1;
         };
@@ -96,7 +95,7 @@ namespace Workflow {
 
     class SortWorker : public Worker {
     public:
-        void run_operation(Context &context) override;
+        void run_operation(const ArgumentList &arguments, Context &context) override;
         inline bool check_arguments(const ArgumentList& arguments) override {
             return arguments.size() == 0;
         };
@@ -104,7 +103,7 @@ namespace Workflow {
 
     class ReplaceWorker : public Worker {
     public:
-        void run_operation(Context &context) override;
+        void run_operation(const ArgumentList &arguments, Context &context) override;
         inline bool check_arguments(const ArgumentList& arguments) override {
             return arguments.size() == 2;
         };
@@ -112,7 +111,7 @@ namespace Workflow {
 
     class DumpWorker : public Worker {
     public:
-        void run_operation(Context &context) override;
+        void run_operation(const ArgumentList &arguments, Context &context) override;
         inline bool check_arguments(const ArgumentList& arguments) override {
             return arguments.size() == 1;
         };

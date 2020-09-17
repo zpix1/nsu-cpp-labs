@@ -7,23 +7,23 @@
 
 using namespace Workflow;
 
-void ReadfileWorker::run_operation(Context &context) {
-    auto input = std::ifstream(context.arguments[0]);
+void ReadfileWorker::run_operation(const ArgumentList &arguments, Context &context) {
+    auto input = std::ifstream(arguments[0]);
     std::string str;
     while (std::getline(input, str)) {
         context.text.push_back(str);
     }
 }
 
-void WritefileWorker::run_operation(Context &context) {
-    auto output = std::ofstream(context.arguments[0]);
+void WritefileWorker::run_operation(const ArgumentList &arguments, Context &context) {
+    auto output = std::ofstream(arguments[0]);
     for (const auto &str: context.text) {
         output << str << std::endl;
     }
 }
 
-void GrepWorker::run_operation(Context &context) {
-    auto grepstr = context.arguments[0];
+void GrepWorker::run_operation(const ArgumentList &arguments, Context &context) {
+    auto grepstr = arguments[0];
     TextContainer new_text;
     for (const auto &str: context.text) {
         if (str.find(grepstr) != std::string::npos) {
@@ -33,7 +33,7 @@ void GrepWorker::run_operation(Context &context) {
     context.text = new_text;
 }
 
-void SortWorker::run_operation(Context &context) {
+void SortWorker::run_operation(const ArgumentList &arguments, Context &context) {
     std::sort(context.text.begin(), context.text.end());
 }
 
@@ -46,16 +46,16 @@ void replace_all(std::string &str, std::string_view replace_from, std::string_vi
     }
 }
 
-void ReplaceWorker::run_operation(Context &context) {
-    auto replace_from = context.arguments[0];
-    auto replace_to = context.arguments[1];
+void ReplaceWorker::run_operation(const ArgumentList &arguments, Context &context) {
+    auto replace_from = arguments[0];
+    auto replace_to = arguments[1];
     for (auto &str: context.text) {
         replace_all(str, replace_from, replace_to);
     }
 }
 
-void DumpWorker::run_operation(Context &context) {
-    auto output = std::ofstream(context.arguments[0]);
+void DumpWorker::run_operation(const ArgumentList &arguments, Context &context) {
+    auto output = std::ofstream(arguments[0]);
     for (const auto &str: context.text) {
         output << str << std::endl;
     }
@@ -229,10 +229,9 @@ void WorkflowExecutor::execute(const Scheme &scheme, std::ifstream input, std::o
 }
 
 void WorkflowExecutor::execute(const Scheme &scheme) {
-    Context ctx{{""}, {""}};
+    Context ctx;
     for (const auto id: scheme.execution_flow) {
         auto& worker_with_arguments = scheme.id2worker.at(id);
-        ctx.arguments = worker_with_arguments.second;
-        worker_with_arguments.first->run_operation(ctx);
+        worker_with_arguments.first->run_operation(worker_with_arguments.second, ctx);
     }
 }

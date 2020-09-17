@@ -9,11 +9,10 @@ const std::string TEMP_FILENAME{ "temp.txt" };
 
 TEST_CASE("GrepWorkerTest", "[worker]") {
     Context c{
-        { "ab" },
         {"123ab", "321", "abcd"}
     };
     GrepWorker w;
-    w.run_operation(c);
+    w.run_operation({ "ab" }, c);
     REQUIRE(c.text == TextContainer{
         "123ab",
         "abcd"
@@ -22,11 +21,10 @@ TEST_CASE("GrepWorkerTest", "[worker]") {
 
 TEST_CASE("SortWorkerTest", "[worker]") {
     Context c{
-        { },
         {"bcda", "abcd", "zzzz"}
     };
     SortWorker w;
-    w.run_operation(c);
+    w.run_operation({ }, c);
     REQUIRE(c.text == TextContainer{
         "abcd",
         "bcda",
@@ -37,11 +35,10 @@ TEST_CASE("SortWorkerTest", "[worker]") {
 TEST_CASE("ReplaceWorkerTest", "[worker]") {
     SECTION("short to long") {
         Context c{
-            { "ab", "<replaced>" },
             { "bcdabkekab", "abcd", "zzzz" }
         };
         ReplaceWorker w;
-        w.run_operation(c);
+        w.run_operation({ "ab", "<replaced>" }, c);
         REQUIRE(c.text == TextContainer{
             "bcd<replaced>kek<replaced>",
             "<replaced>cd",
@@ -50,11 +47,10 @@ TEST_CASE("ReplaceWorkerTest", "[worker]") {
     }
     SECTION("long to short") {
         Context c{
-            { "abcdef", "<>" },
             { "abcdefabcdef", "aabcdefa", "zzzz" }
         };
         ReplaceWorker w;
-        w.run_operation(c);
+        w.run_operation({ "abcdef", "<>" }, c);
         REQUIRE(c.text == TextContainer{
             "<><>",
             "a<>a",
@@ -65,11 +61,10 @@ TEST_CASE("ReplaceWorkerTest", "[worker]") {
 
 TEST_CASE("DumpWorkerTest", "[worker]") {
     Context c{
-        { TEMP_FILENAME },
         { "abcdefabcdef", "aabcdefa", "zzzz" }
     };
     DumpWorker w;
-    w.run_operation(c);
+    w.run_operation({ TEMP_FILENAME }, c);
     REQUIRE(c.text.size() == 3);
     std::ifstream f(TEMP_FILENAME);
     std::string s;
