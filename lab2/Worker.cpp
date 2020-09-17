@@ -37,7 +37,7 @@ void SortWorker::run_operation(const ArgumentList &arguments, Context &context) 
     std::sort(context.text.begin(), context.text.end());
 }
 
-// !TODO: replace it with regex way
+// TODO: replace it with regex way
 void replace_all(std::string &str, std::string_view replace_from, std::string_view replace_to) {
     std::size_t pos = str.find(replace_from);
     while (pos != std::string::npos) {
@@ -214,16 +214,6 @@ bool WorkflowExecutor::validate(const Scheme &scheme, const InputOutputMode mode
     return true;
 }
 
-//InputOutputMode WorkflowExecutor::check_mode(const Scheme &scheme) const {
-//    if (scheme.execution_flow.empty()) return InputOutputMode::None;
-//    if ((dynamic_cast<ReadfileWorker *>(scheme.id2worker.at(scheme.execution_flow[0]).first.get()) != nullptr)
-//        && (dynamic_cast<WritefileWorker *>(scheme.id2worker.at(
-//            scheme.execution_flow[scheme.execution_flow.size() - 1]).first.get()) != nullptr)) {
-//        return InputOutputMode::FileMode;
-//    }
-//    return InputOutputMode::CmdlineFlagMode;
-//}
-
 void WorkflowExecutor::execute(const Scheme &scheme, std::ifstream input, std::ofstream output) {
 
 }
@@ -231,7 +221,9 @@ void WorkflowExecutor::execute(const Scheme &scheme, std::ifstream input, std::o
 void WorkflowExecutor::execute(const Scheme &scheme) {
     Context ctx;
     for (const auto id: scheme.execution_flow) {
-        auto& worker_with_arguments = scheme.id2worker.at(id);
+        // Why [] does not work, but .at() does?
+        // ANSWER: _____
+        const auto& worker_with_arguments = scheme.id2worker.at(id);
         worker_with_arguments.first->run_operation(worker_with_arguments.second, ctx);
     }
 }
