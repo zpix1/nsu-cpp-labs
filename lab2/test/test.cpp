@@ -81,34 +81,65 @@ TEST_CASE("DumpWorkerTest", "[worker]") {
     REQUIRE(s == "zzzz");
 }
 
-TEST_CASE("WorkflowExecutorTest", "[worker]") {
-    TextContainer instructions{
-        "desc",
-        "1 = readfile in.txt",
-        "2 = grep aaa",
-        "3 = sort",
-        "4 = writefile out.txt",
-        "5 = replace abcd dcba",
-        "csed",
-        "1 -> 2 -> 3 -> 5 -> 4"
-    };
-
-    WorkflowExecutor worker;
-    Scheme scheme;
-    scheme = worker.parse(instructions);
-    SECTION("parses correctly") {
-        REQUIRE(scheme.execution_flow == std::vector<WorkerID>{1, 2, 3, 5, 4});
-        REQUIRE(scheme.id2worker[1].second == ArgumentList{"in.txt"});
-        REQUIRE(scheme.id2worker[2].second == ArgumentList{"aaa"});
-        REQUIRE(scheme.id2worker[3].second.empty());
-        REQUIRE(scheme.id2worker[4].second == ArgumentList{"out.txt"});
-        REQUIRE(scheme.id2worker[5].second == ArgumentList{"abcd", "dcba"});
+TextContainer readfile(const std::string& fname) {
+    TextContainer t;
+    auto input = std::ifstream(fname);
+    std::string str;
+    while (std::getline(input, str)) {
+        t.push_back(str);
     }
-    InputOutputMode mode;
-    SECTION("validates correctly") {
-        auto validation_result = worker.validate(scheme, InputOutputMode::FileMode);
-        REQUIRE(validation_result == true);
-        mode = worker.check_mode(scheme);
-        REQUIRE(mode == InputOutputMode::FileMode);
+    return t;
+}
+
+void writefile(const std::string& fname, const TextContainer& text) {
+    auto output = std::ofstream(fname);
+    for (const auto &str: text) {
+        output << str << std::endl;
+    }
+}
+
+TEST_CASE("WorkflowExecutorTest", "[worker]") {
+    SECTION("correct instructions") {
+        TextContainer instructions{
+                "desc",
+                "1 = readfile in.txt",
+                "2 = grep aaa",
+                "3 = sort",
+                "4 = writefile out.txt",
+                "5 = replace abcd dcba",
+                "csed",
+                "1 -> 2 -> 3 -> 5 -> 4"
+        };
+
+        WorkflowExecutor worker;
+        Scheme scheme;
+        scheme = worker.parse(instructions);
+        SECTION("parses correctly") {
+            REQUIRE(scheme.execution_flow == std::vector<WorkerID>{1, 2, 3, 5, 4});
+            REQUIRE(scheme.id2worker[1].second == ArgumentList{"in.txt"});
+            REQUIRE(scheme.id2worker[2].second == ArgumentList{"aaa"});
+            REQUIRE(scheme.id2worker[3].second.empty());
+            REQUIRE(scheme.id2worker[4].second == ArgumentList{"out.txt"});
+            REQUIRE(scheme.id2worker[5].second == ArgumentList{"abcd", "dcba"});
+        }
+        SECTION("validates correctly") {
+            auto validation_result = worker.validate(scheme, InputOutputMode::FlagZero);
+            REQUIRE(validation_result == true);
+        }
+        SECTION("runs correctly") {
+            writefile("in.txt", TextContainer{
+                "jejeje lololo",
+                "z jeaaaaaaajeje",
+                "a jejeje lololoaaa",
+                "y aaa abcd"
+            });
+            worker.execute(scheme);
+            auto out = readfile("out.txt");
+            REQUIRE(out == TextContainer{
+                "a jejeje lololoaaa",
+                "y aaa dcba",
+                "z jeaaaaaaajeje"
+            });
+        }
     }
 }

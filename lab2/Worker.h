@@ -16,13 +16,19 @@ namespace Workflow {
     using WorkerID = int;
 
     enum class InputOutputMode {
-        FileMode,
-        CmdlineFlagMode,
+        // Use input/output from instructions
+        FlagZero,
+        // Use output from instructions and input from stream
+        FlagI,
+        // Use input from instructions and output from stream
+        FlagO,
+        // Use input and output from streams
+        FlagIO,
         None
     };
 
     struct Context {
-        ArgumentList arguments;
+        const ArgumentList& arguments;
         TextContainer text;
     };
 
@@ -43,8 +49,6 @@ namespace Workflow {
 
     class Validator {
         virtual bool validate(const Scheme &scheme, const InputOutputMode mode) const = 0;
-
-        [[nodiscard]] virtual InputOutputMode check_mode(const Scheme &scheme) const = 0;
     };
 
     class Executor {
@@ -60,8 +64,6 @@ namespace Workflow {
         [[nodiscard]] Scheme parse(const TextContainer &text) const override;
 
         bool validate(const Scheme &scheme, const InputOutputMode mode) const override;
-
-        InputOutputMode check_mode(const Scheme &scheme) const override;
 
         void execute(const Scheme &scheme, std::ifstream input, std::ofstream output) override;
 

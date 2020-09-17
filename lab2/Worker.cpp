@@ -169,49 +169,70 @@ bool WorkflowExecutor::validate(const Scheme &scheme, const InputOutputMode mode
     if (mode == InputOutputMode::None) {
         return true;
     }
-    if (mode == InputOutputMode::FileMode) {
+    // Check size
+    if (mode == InputOutputMode::FlagIO) {
         if (scheme.execution_flow.size() < 2) {
             throw ValidationException("not enough flow elements for file mode",
                                       ValidationException::ErrorDomain::ExecutionFlow, 1);
         }
+    } else if (mode == InputOutputMode::FlagI || mode == InputOutputMode::FlagO) {
+        if (scheme.execution_flow.empty()) {
+            throw ValidationException("not enough flow elements for file mode",
+                                      ValidationException::ErrorDomain::ExecutionFlow, 1);
+        }
+    }
+    // Check start read
+    if (mode == InputOutputMode::FlagI || mode == InputOutputMode::FlagIO) {
         if ((dynamic_cast<ReadfileWorker *>(scheme.id2worker.at(scheme.execution_flow[0]).first.get()) == nullptr)) {
             throw ValidationException("read file worker does not present, but expected",
                                       ValidationException::ErrorDomain::ExecutionFlow, 1);
         }
+    }
+    // Check end write
+    if (mode == InputOutputMode::FlagO || mode == InputOutputMode::FlagIO) {
         if ((dynamic_cast<WritefileWorker *>(scheme.id2worker.at(
                 scheme.execution_flow[scheme.execution_flow.size() - 1]).first.get()) == nullptr)) {
             throw ValidationException("write file worker does not present, but expected",
-                                      ValidationException::ErrorDomain::ExecutionFlow, 1);
+                                      ValidationException::ErrorDomain::ExecutionFlow, scheme.execution_flow.size());
         }
-    } else if (mode == InputOutputMode::CmdlineFlagMode) {
-        for (auto i = 0; i < scheme.execution_flow.size(); i++) {
-            if ((dynamic_cast<ReadfileWorker *>(scheme.id2worker.at(scheme.execution_flow[i]).first.get()) !=
-                 nullptr) ||
-                ((dynamic_cast<WritefileWorker *>(scheme.id2worker.at(scheme.execution_flow[i]).first.get()) !=
-                  nullptr))) {
-                throw ValidationException("read or write worker unexpected in command line files indication mode",
-                                          ValidationException::ErrorDomain::ExecutionFlow,
-                                          i + 1);
-            }
+    }
+    auto start = mode == InputOutputMode::FlagI || mode == InputOutputMode::FlagIO ? 0 : 1;
+    auto end = mode == InputOutputMode::FlagO || mode == InputOutputMode::FlagIO ? scheme.execution_flow.size() :
+               scheme.execution_flow.size() - 1;
+
+    // Bad read/write workers check
+    for (auto i = start; i < end; i++) {
+        if ((dynamic_cast<ReadfileWorker *>(scheme.id2worker.at(scheme.execution_flow[i]).first.get()) !=
+             nullptr) ||
+            ((dynamic_cast<WritefileWorker *>(scheme.id2worker.at(scheme.execution_flow[i]).first.get()) !=
+              nullptr))) {
+            throw ValidationException("read or write worker unexpected in command line files indication mode",
+                                      ValidationException::ErrorDomain::ExecutionFlow,
+                                      i + 1);
         }
     }
     return true;
 }
 
-InputOutputMode WorkflowExecutor::check_mode(const Scheme &scheme) const {
-    if (scheme.execution_flow.empty()) return InputOutputMode::None;
-    if ((dynamic_cast<ReadfileWorker *>(scheme.id2worker.at(scheme.execution_flow[0]).first.get()) != nullptr)
-        && (dynamic_cast<WritefileWorker *>(scheme.id2worker.at(
-            scheme.execution_flow[scheme.execution_flow.size() - 1]).first.get()) != nullptr)) {
-        return InputOutputMode::FileMode;
-    }
-    return InputOutputMode::CmdlineFlagMode;
-}
+//InputOutputMode WorkflowExecutor::check_mode(const Scheme &scheme) const {
+//    if (scheme.execution_flow.empty()) return InputOutputMode::None;
+//    if ((dynamic_cast<ReadfileWorker *>(scheme.id2worker.at(scheme.execution_flow[0]).first.get()) != nullptr)
+//        && (dynamic_cast<WritefileWorker *>(scheme.id2worker.at(
+//            scheme.execution_flow[scheme.execution_flow.size() - 1]).first.get()) != nullptr)) {
+//        return InputOutputMode::FileMode;
+//    }
+//    return InputOutputMode::CmdlineFlagMode;
+//}
 
 void WorkflowExecutor::execute(const Scheme &scheme, std::ifstream input, std::ofstream output) {
 
 }
 
 void WorkflowExecutor::execute(const Scheme &scheme) {
-
+    Context ctx{{""}, {""}};
+    for (const auto id: scheme.execution_flow) {
+        auto& worker_with_arguments = scheme.id2worker.at(id);
+        ctx.arguments = worker_with_arguments.second;
+        worker_with_arguments.first->run_operation(ctx);
+    }
 }
