@@ -2,11 +2,11 @@
 #include <string>
 
 namespace Workflow {
-    class UnexpectedLine: public std::exception {
+    class ParsingException: public std::exception {
         std::string error_message;
         std::size_t nline;
     public:
-        explicit UnexpectedLine(const std::string& msg, const std::size_t nline) :
+        explicit ParsingException(const std::string& msg, const std::size_t nline) :
          error_message(msg),
          nline(nline) 
          {};
