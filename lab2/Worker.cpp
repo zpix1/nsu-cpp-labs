@@ -4,6 +4,7 @@
 #include <iostream>
 #include <algorithm>
 #include <sstream>
+#include <regex>
 
 using namespace Workflow;
 
@@ -61,14 +62,17 @@ void DumpWorker::run_operation(Context& context) {
     }
 }
 
-auto arguments_split(const std::string& str){
-    ArgumentList result;
-    std::string tmp; 
-    std::stringstream ss(str);
 
-    while(std::getline(ss, tmp, ' ')) {
-        result.push_back(tmp);
+auto string_split(std::string str, std::string_view delimiter) {
+    std::vector<std::string> result;
+    std::size_t pos = 0;
+    std::string token;
+    while ((pos = str.find(delimiter)) != std::string::npos) {
+        token = str.substr(0, pos);
+        result.push_back(token);
+        str.erase(0, pos + delimiter.length());
     }
+    result.push_back(str);
     return result;
 }
 
@@ -95,27 +99,38 @@ Scheme WorkflowExecutor::parse(const TextContainer& text) const {
     if (text[0] != "desc") throw ParsingException("desc tag in first line expected", 0);
 
     Scheme scheme;
-    for (auto i = 1; text[i] != "csed"; i++) {
+    auto i = 1;
+    for (; text[i] != "csed"; i++) {
         auto pos = text[i].find(delimiter);
         if (pos == std::string::npos) throw ParsingException("delimiter not found", i);
         
         auto id = std::stoi(text[i].substr(0, pos));
         auto worker_with_arguments = text[i].substr(pos + delimiter.length(), text[i].length());
         
-        auto arguments = arguments_split(worker_with_arguments);
+        auto arguments = static_cast<ArgumentList>(string_split(worker_with_arguments, " "));
         if (arguments.size() == 0) throw ParsingException("block name expected, but not found", i);
         
         auto worker_ptr = get_worker_by_name(arguments[0]);
         if (worker_ptr == nullptr) throw ParsingException("invalid worker name", i);
 
-        std::cout << "Block: " << arguments[0] << std::endl;
         arguments.erase(arguments.begin());
-        for (const auto& s: arguments) {
-            std::cout << id << "\targ: " << s << std::endl;
-        }
+
+        scheme.id2worker.insert(std::make_pair(id, 
+                                               std::make_pair(std::move(worker_ptr), std::move(arguments))
+                                ));
 
         // csed should appear
         if (i + 1 == text.size()) throw ParsingException("csed expected, but not found", i);      
+    }
+
+    i++;
+
+    if (i != text.size() - 1) throw ParsingException("id flow line expected, but not found", i); 
+
+    auto flow_tokens = string_split(text[i], " -> ");
+
+    for (const auto& s: flow_tokens) {
+        scheme.execution_flow.push_back(std::stoi(s));
     }
 
     return scheme;

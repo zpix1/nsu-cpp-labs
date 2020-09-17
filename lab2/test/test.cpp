@@ -14,9 +14,10 @@ TEST_CASE("GrepWorkerTest", "[worker]") {
     };
     GrepWorker w;
     w.run_operation(c);
-    REQUIRE(c.text.size() == 2);
-    REQUIRE(c.text[0] == "123ab");
-    REQUIRE(c.text[1] == "abcd");
+    REQUIRE(c.text == TextContainer{
+        "123ab",
+        "abcd"
+    });
 }
 
 TEST_CASE("SortWorkerTest", "[worker]") {
@@ -26,10 +27,11 @@ TEST_CASE("SortWorkerTest", "[worker]") {
     };
     SortWorker w;
     w.run_operation(c);
-    REQUIRE(c.text.size() == 3);
-    REQUIRE(c.text[0] == "abcd");
-    REQUIRE(c.text[1] == "bcda");
-    REQUIRE(c.text[2] == "zzzz");
+    REQUIRE(c.text == TextContainer{
+        "abcd",
+        "bcda",
+        "zzzz"
+    });
 }
 
 TEST_CASE("ReplaceWorkerTest", "[worker]") {
@@ -40,10 +42,11 @@ TEST_CASE("ReplaceWorkerTest", "[worker]") {
         };
         ReplaceWorker w;
         w.run_operation(c);
-        REQUIRE(c.text.size() == 3);
-        REQUIRE(c.text[0] == "bcd<replaced>kek<replaced>");
-        REQUIRE(c.text[1] == "<replaced>cd");
-        REQUIRE(c.text[2] == "zzzz");
+        REQUIRE(c.text == TextContainer{
+            "bcd<replaced>kek<replaced>",
+            "<replaced>cd",
+            "zzzz"
+        });
     }
     SECTION("long to short") {
         Context c{
@@ -52,10 +55,11 @@ TEST_CASE("ReplaceWorkerTest", "[worker]") {
         };
         ReplaceWorker w;
         w.run_operation(c);
-        REQUIRE(c.text.size() == 3);
-        REQUIRE(c.text[0] == "<><>");
-        REQUIRE(c.text[1] == "a<>a");
-        REQUIRE(c.text[2] == "zzzz");
+        REQUIRE(c.text == TextContainer{
+            "<><>",
+            "a<>a",
+            "zzzz"
+        });
     }
 }
 
@@ -84,9 +88,16 @@ TEST_CASE("WorkflowExecutorTest", "[worker]") {
         "2 = grep aaa",
         "3 = sort",
         "4 = writefile out.txt",
+        "5 = replace abcd dcba",
         "csed",
-        "1 -> 2 -> 3 -> 4"
+        "1 -> 2 -> 3 -> 5 -> 4"
     };
     WorkflowExecutor w;
     Scheme s = w.parse(instructions);
+    REQUIRE(s.execution_flow == std::vector<int>{1, 2, 3, 5, 4});
+    REQUIRE(s.id2worker[1].second == ArgumentList{"in.txt"});
+    REQUIRE(s.id2worker[2].second == ArgumentList{"aaa"});
+    REQUIRE(s.id2worker[3].second == ArgumentList{});
+    REQUIRE(s.id2worker[4].second == ArgumentList{"out.txt"});
+    REQUIRE(s.id2worker[5].second == ArgumentList{"abcd", "dcba"});
 }
