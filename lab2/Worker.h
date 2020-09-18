@@ -51,22 +51,38 @@ namespace Workflow {
     };
 
     class Executor {
-        // FileMode
-        virtual void execute(const Scheme &scheme, std::ifstream input, std::ofstream output) = 0;
+        virtual void execute_with_ctx(const Scheme &scheme, Context& ctx) = 0;
 
-        // CmdlineFlagMode
+        // FlagZero
         virtual void execute(const Scheme &scheme) = 0;
+
+        // FlagI
+        virtual void execute(const Scheme &scheme, std::istream& input) = 0;
+
+        // FlagO
+        virtual void execute(const Scheme &scheme, std::ostream& output) = 0;
+
+        // FlagIO
+        virtual void execute(const Scheme &scheme, std::istream& input, std::ostream& output) = 0;
     };
 
     class WorkflowExecutor : public Parser, public Validator, public Executor {
+        void execute_with_ctx(const Scheme &scheme, Context& ctx) override;
     public:
         [[nodiscard]] Scheme parse(const TextContainer &text) const override;
 
-        bool validate(const Scheme &scheme, const InputOutputMode mode) const override;
-
-        void execute(const Scheme &scheme, std::ifstream input, std::ofstream output) override;
+        [[nodiscard]] bool validate(const Scheme &scheme, InputOutputMode mode) const override;
 
         void execute(const Scheme &scheme) override;
+
+        // FlagI
+        void execute(const Scheme &scheme, std::istream& input) override;
+
+        // FlagO
+        void execute(const Scheme &scheme, std::ostream& output) override;
+
+        // FlagIO
+        void execute(const Scheme &scheme, std::istream& input, std::ostream& output) override;
     };
 
     class ReadfileWorker : public Worker {
@@ -97,7 +113,7 @@ namespace Workflow {
     public:
         void run_operation(const ArgumentList &arguments, Context &context) override;
         inline bool check_arguments(const ArgumentList& arguments) override {
-            return arguments.size() == 0;
+            return arguments.empty();
         };
     };
 

@@ -1,5 +1,5 @@
 #include "Worker.h"
-
+#include "utility.h"
 #include <fstream>
 #include <iostream>
 #include <algorithm>
@@ -8,18 +8,20 @@
 using namespace Workflow;
 
 void ReadfileWorker::run_operation(const ArgumentList &arguments, Context &context) {
-    auto input = std::ifstream(arguments[0]);
-    std::string str;
-    while (std::getline(input, str)) {
-        context.text.push_back(str);
-    }
+    readfile(arguments[0], context.text);
+//    auto input = std::ifstream(arguments[0]);
+//    std::string str;
+//    while (std::getline(input, str)) {
+//        context.text.push_back(str);
+//    }
 }
 
 void WritefileWorker::run_operation(const ArgumentList &arguments, Context &context) {
-    auto output = std::ofstream(arguments[0]);
-    for (const auto &str: context.text) {
-        output << str << std::endl;
-    }
+    writefile(arguments[0], context.text);
+//    auto output = std::ofstream(arguments[0]);
+//    for (const auto &str: context.text) {
+//        output << str << std::endl;
+//    }
 }
 
 void GrepWorker::run_operation(const ArgumentList &arguments, Context &context) {
@@ -60,7 +62,6 @@ void DumpWorker::run_operation(const ArgumentList &arguments, Context &context) 
         output << str << std::endl;
     }
 }
-
 
 auto string_split(std::string str, std::string_view delimiter) {
     std::vector<std::string> result;
@@ -150,7 +151,9 @@ Scheme WorkflowExecutor::parse(const TextContainer &text) const {
 
     auto flow_tokens = string_split(text[i], " -> ");
     for (const auto &s: flow_tokens) {
-        scheme.execution_flow.push_back(str_to_worker_id(s, i + 1));
+        auto id = str_to_worker_id(s, i + 1);
+        if (scheme.id2worker.count(id) == 0) throw ParsingException("undeclared id found", i + 1);
+        scheme.execution_flow.push_back(id);
     }
 
     return scheme;
@@ -214,16 +217,36 @@ bool WorkflowExecutor::validate(const Scheme &scheme, const InputOutputMode mode
     return true;
 }
 
-void WorkflowExecutor::execute(const Scheme &scheme, std::ifstream input, std::ofstream output) {
-
+void WorkflowExecutor::execute_with_ctx(const Scheme &scheme, Context &ctx) {
+    for (const auto id: scheme.execution_flow) {
+        // Why [] does not work, but .at() does?
+        // ANSWER: _____
+        const auto &worker_with_arguments = scheme.id2worker.at(id);
+        worker_with_arguments.first->run_operation(worker_with_arguments.second, ctx);
+    }
 }
 
 void WorkflowExecutor::execute(const Scheme &scheme) {
     Context ctx;
-    for (const auto id: scheme.execution_flow) {
-        // Why [] does not work, but .at() does?
-        // ANSWER: _____
-        const auto& worker_with_arguments = scheme.id2worker.at(id);
-        worker_with_arguments.first->run_operation(worker_with_arguments.second, ctx);
-    }
+    execute_with_ctx(scheme, ctx);
 }
+
+void WorkflowExecutor::execute(const Scheme &scheme, std::istream& input) {
+    Context ctx;
+    readfile(input, ctx.text);
+    execute_with_ctx(scheme, ctx);
+}
+
+void WorkflowExecutor::execute(const Scheme &scheme, std::ostream& output) {
+    Context ctx;
+    execute_with_ctx(scheme, ctx);
+    writefile(output, ctx.text);
+}
+
+void WorkflowExecutor::execute(const Scheme &scheme, std::istream& input, std::ostream& output) {
+    Context ctx;
+    readfile(input, ctx.text);
+    execute_with_ctx(scheme, ctx);
+    writefile(output, ctx.text);
+}
+
