@@ -9,6 +9,8 @@
 #include <fstream>
 #include <string>
 
+#include <sys/stat.h>
+
 namespace Workflow {
 
     inline void file_should_exist(const std::string& filename) {
