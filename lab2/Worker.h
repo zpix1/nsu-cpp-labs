@@ -47,7 +47,7 @@ namespace Workflow {
     };
 
     class Validator {
-        virtual bool validate(const Scheme &scheme, const InputOutputMode mode) const = 0;
+        virtual void validate(const Scheme &scheme, InputOutputMode mode) const = 0;
     };
 
     class Executor {
@@ -71,7 +71,7 @@ namespace Workflow {
     public:
         [[nodiscard]] Scheme parse(const TextContainer &text) const override;
 
-        [[nodiscard]] bool validate(const Scheme &scheme, InputOutputMode mode) const override;
+        void validate(const Scheme &scheme, InputOutputMode mode) const override;
 
         void execute(const Scheme &scheme) override;
 

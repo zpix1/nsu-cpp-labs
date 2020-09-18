@@ -4,31 +4,24 @@
 #include <iostream>
 #include <algorithm>
 #include <sstream>
+#include <regex>
 
 using namespace Workflow;
 
 void ReadfileWorker::run_operation(const ArgumentList &arguments, Context &context) {
     readfile(arguments[0], context.text);
-//    auto input = std::ifstream(arguments[0]);
-//    std::string str;
-//    while (std::getline(input, str)) {
-//        context.text.push_back(str);
-//    }
 }
 
 void WritefileWorker::run_operation(const ArgumentList &arguments, Context &context) {
     writefile(arguments[0], context.text);
-//    auto output = std::ofstream(arguments[0]);
-//    for (const auto &str: context.text) {
-//        output << str << std::endl;
-//    }
 }
 
 void GrepWorker::run_operation(const ArgumentList &arguments, Context &context) {
-    auto grepstr = arguments[0];
+    auto egrep_re = std::regex(arguments[0]);
     TextContainer new_text;
     for (const auto &str: context.text) {
-        if (str.find(grepstr) != std::string::npos) {
+        std::smatch base_match;
+        if (std::regex_search(str, egrep_re)) {
             new_text.push_back(str);
         }
     }
@@ -40,19 +33,15 @@ void SortWorker::run_operation(const ArgumentList &arguments, Context &context) 
 }
 
 // TODO: replace it with regex way
-void replace_all(std::string &str, std::string_view replace_from, std::string_view replace_to) {
-    std::size_t pos = str.find(replace_from);
-    while (pos != std::string::npos) {
-        str.replace(pos, replace_from.length(), replace_to);
-        pos = str.find(replace_from);
-    }
+auto replace_all(std::string &str, const std::string& replace_from, const std::string& replace_to) {
+    return std::regex_replace(str, std::regex(replace_from), replace_to);
 }
 
 void ReplaceWorker::run_operation(const ArgumentList &arguments, Context &context) {
     auto replace_from = arguments[0];
     auto replace_to = arguments[1];
-    for (auto &str: context.text) {
-        replace_all(str, replace_from, replace_to);
+    for (std::string& str: context.text) {
+        str = replace_all(str, replace_from, replace_to);
     }
 }
 
@@ -160,7 +149,7 @@ Scheme WorkflowExecutor::parse(const TextContainer &text) const {
     return scheme;
 }
 
-bool WorkflowExecutor::validate(const Scheme &scheme, const InputOutputMode mode) const {
+void WorkflowExecutor::validate(const Scheme &scheme, InputOutputMode mode) const {
     // check arguments for each worker
     for (const auto&[id, worker_with_arguments]: scheme.id2worker) {
         if (!worker_with_arguments.first->check_arguments(worker_with_arguments.second)) {
@@ -170,7 +159,7 @@ bool WorkflowExecutor::validate(const Scheme &scheme, const InputOutputMode mode
         }
     }
     if (mode == InputOutputMode::None) {
-        return true;
+        return;
     }
     if (mode == InputOutputMode::FlagZero) {
         if (scheme.execution_flow.size() < 2) {
@@ -213,7 +202,6 @@ bool WorkflowExecutor::validate(const Scheme &scheme, const InputOutputMode mode
                                       i + 1);
         }
     }
-    return true;
 }
 
 void WorkflowExecutor::execute_with_ctx(const Scheme &scheme, Context &ctx) {
