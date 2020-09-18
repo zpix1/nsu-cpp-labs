@@ -8,18 +8,18 @@
 
 using namespace Workflow;
 
-void ReadfileWorker::run_operation(const ArgumentList &arguments, Context &context) {
+void ReadfileWorker::run_operation(const ArgumentList& arguments, Context& context) {
     readfile(arguments[0], context.text);
 }
 
-void WritefileWorker::run_operation(const ArgumentList &arguments, Context &context) {
+void WritefileWorker::run_operation(const ArgumentList& arguments, Context& context) {
     writefile(arguments[0], context.text);
 }
 
-void GrepWorker::run_operation(const ArgumentList &arguments, Context &context) {
+void GrepWorker::run_operation(const ArgumentList& arguments, Context& context) {
     auto egrep_re = std::regex(arguments[0]);
     TextContainer new_text;
-    for (const auto &str: context.text) {
+    for (const auto& str: context.text) {
         std::smatch base_match;
         if (std::regex_search(str, egrep_re)) {
             new_text.push_back(str);
@@ -28,16 +28,16 @@ void GrepWorker::run_operation(const ArgumentList &arguments, Context &context) 
     context.text = new_text;
 }
 
-void SortWorker::run_operation(const ArgumentList &arguments, Context &context) {
+void SortWorker::run_operation(const ArgumentList& arguments, Context& context) {
     std::sort(context.text.begin(), context.text.end());
 }
 
 // TODO: replace it with regex way
-auto replace_all(std::string &str, const std::string& replace_from, const std::string& replace_to) {
+auto replace_all(std::string& str, const std::string& replace_from, const std::string& replace_to) {
     return std::regex_replace(str, std::regex(replace_from), replace_to);
 }
 
-void ReplaceWorker::run_operation(const ArgumentList &arguments, Context &context) {
+void ReplaceWorker::run_operation(const ArgumentList& arguments, Context& context) {
     auto replace_from = arguments[0];
     auto replace_to = arguments[1];
     for (std::string& str: context.text) {
@@ -45,9 +45,9 @@ void ReplaceWorker::run_operation(const ArgumentList &arguments, Context &contex
     }
 }
 
-void DumpWorker::run_operation(const ArgumentList &arguments, Context &context) {
+void DumpWorker::run_operation(const ArgumentList& arguments, Context& context) {
     auto output = std::ofstream(arguments[0]);
-    for (const auto &str: context.text) {
+    for (const auto& str: context.text) {
         output << str << std::endl;
     }
 }
@@ -81,13 +81,13 @@ std::unique_ptr<Worker> get_worker_by_name(std::string_view name) {
     return nullptr;
 }
 
-auto str_to_worker_id(const std::string &str_id, int nline) {
+auto str_to_worker_id(const std::string& str_id, int nline) {
     WorkerID id;
     try {
         id = std::stoi(str_id);
-    } catch (std::invalid_argument &e) {
+    } catch (std::invalid_argument& e) {
         throw ParsingException("non-negative integer id expected, invalid id found", nline);
-    } catch (std::out_of_range &e) {
+    } catch (std::out_of_range& e) {
         throw ParsingException("non-negative integer id expected, out-of-range id found", nline);
     }
 
@@ -98,7 +98,7 @@ auto str_to_worker_id(const std::string &str_id, int nline) {
     return id;
 }
 
-Scheme WorkflowExecutor::parse(const TextContainer &text) const {
+Scheme WorkflowExecutor::parse(const TextContainer& text) const {
     const std::string delimiter = " = ";
 
     // First line show be desc
@@ -140,7 +140,7 @@ Scheme WorkflowExecutor::parse(const TextContainer &text) const {
 
     auto flow_tokens = string_split(text[i], " -> ");
     if (flow_tokens == std::vector<std::string>{""}) return scheme;
-    for (const auto &s: flow_tokens) {
+    for (const auto& s: flow_tokens) {
         auto id = str_to_worker_id(s, i + 1);
         if (scheme.id2worker.count(id) == 0) throw ParsingException("undeclared id found", i + 1);
         scheme.execution_flow.push_back(id);
@@ -149,7 +149,7 @@ Scheme WorkflowExecutor::parse(const TextContainer &text) const {
     return scheme;
 }
 
-void WorkflowExecutor::validate(const Scheme &scheme, InputOutputMode mode) const {
+void WorkflowExecutor::validate(const Scheme& scheme, InputOutputMode mode) const {
     // check arguments for each worker
     for (const auto&[id, worker_with_arguments]: scheme.id2worker) {
         if (!worker_with_arguments.first->check_arguments(worker_with_arguments.second)) {
@@ -204,33 +204,33 @@ void WorkflowExecutor::validate(const Scheme &scheme, InputOutputMode mode) cons
     }
 }
 
-void WorkflowExecutor::execute_with_ctx(const Scheme &scheme, Context &ctx) {
+void WorkflowExecutor::execute_with_ctx(const Scheme& scheme, Context& ctx) {
     for (const auto id: scheme.execution_flow) {
         // Why [] does not work, but .at() does?
         // ANSWER: _____
-        const auto &worker_with_arguments = scheme.id2worker.at(id);
+        const auto& worker_with_arguments = scheme.id2worker.at(id);
         worker_with_arguments.first->run_operation(worker_with_arguments.second, ctx);
     }
 }
 
-void WorkflowExecutor::execute(const Scheme &scheme) {
+void WorkflowExecutor::execute(const Scheme& scheme) {
     Context ctx;
     execute_with_ctx(scheme, ctx);
 }
 
-void WorkflowExecutor::execute(const Scheme &scheme, std::istream &input) {
+void WorkflowExecutor::execute(const Scheme& scheme, std::istream& input) {
     Context ctx;
     readfile(input, ctx.text);
     execute_with_ctx(scheme, ctx);
 }
 
-void WorkflowExecutor::execute(const Scheme &scheme, std::ostream &output) {
+void WorkflowExecutor::execute(const Scheme& scheme, std::ostream& output) {
     Context ctx;
     execute_with_ctx(scheme, ctx);
     writefile(output, ctx.text);
 }
 
-void WorkflowExecutor::execute(const Scheme &scheme, std::istream &input, std::ostream &output) {
+void WorkflowExecutor::execute(const Scheme& scheme, std::istream& input, std::ostream& output) {
     Context ctx;
     readfile(input, ctx.text);
     execute_with_ctx(scheme, ctx);

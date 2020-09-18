@@ -104,7 +104,8 @@ TEST_CASE("WorkflowExecutorTest", "[worker]") {
         }SECTION("validates correctly") {
             REQUIRE_NOTHROW(worker.validate(scheme, InputOutputMode::FlagZero));
         }SECTION("runs correctly") {
-            writefile("in.txt", TextContainer{
+            std::ofstream output("in.txt");
+            writefile(output, TextContainer{
                     "jejeje lololo",
                     "z jeaaaaaaajeje",
                     "a jejeje lololoaaa",
@@ -200,8 +201,8 @@ TEST_CASE("WorkflowExecutorTest", "[worker]") {
         }
     }SECTION("worker integration") {
         std::vector<std::tuple<std::string, TextContainer, std::string, TextContainer>> tests{
-                {"show ERROR log entries",                                      {"desc", "1 = grep :ERROR:",  "csed",           "1"},         {"01.01.2020:WARNING:Juju\n01.02.2020:ERROR:Very bad error\n01.03.2020:ERROR:Very very bad error"}, { "01.02.2020:ERROR:Very bad error", "01.03.2020:ERROR:Very very bad error" }},
-                {"replace all digits to A and select lines with more than 3 A", {"desc", "1 = replace \\d A", "2 = grep A{3,}", "csed", "1 -> 2"}, {"kek\nls12\nms123\ndls123456"}, {"msAAA", "dlsAAAAAA"}},
+                {"show ERROR log entries",                                      {"desc", "1 = grep :ERROR:",  "csed",           "1"},              {"01.01.2020:WARNING:Juju\n01.02.2020:ERROR:Very bad error\n01.03.2020:ERROR:Very very bad error"}, {"01.02.2020:ERROR:Very bad error", "01.03.2020:ERROR:Very very bad error"}},
+                {"replace all digits to A and select lines with more than 3 A", {"desc", "1 = replace \\d A", "2 = grep A{3,}", "csed", "1 -> 2"}, {"kek\nls12\nms123\ndls123456"},                                                                    {"msAAA",                           "dlsAAAAAA"}},
         };
         for (const auto&[name, instructions, input_str, output_str] : tests) {
             SECTION(name) {

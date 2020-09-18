@@ -33,7 +33,8 @@ namespace Workflow {
 
     class Worker {
     public:
-        virtual void run_operation(const ArgumentList &arguments, Context &context) = 0;
+        virtual void run_operation(const ArgumentList& arguments, Context& context) = 0;
+
         virtual bool check_arguments(const ArgumentList& arguments) = 0;
     };
 
@@ -43,51 +44,53 @@ namespace Workflow {
     };
 
     class Parser {
-        [[nodiscard]] virtual Scheme parse(const TextContainer &text) const = 0;
+        [[nodiscard]] virtual Scheme parse(const TextContainer& text) const = 0;
     };
 
     class Validator {
-        virtual void validate(const Scheme &scheme, InputOutputMode mode) const = 0;
+        virtual void validate(const Scheme& scheme, InputOutputMode mode) const = 0;
     };
 
     class Executor {
-        virtual void execute_with_ctx(const Scheme &scheme, Context& ctx) = 0;
+        virtual void execute_with_ctx(const Scheme& scheme, Context& ctx) = 0;
 
         // FlagZero
-        virtual void execute(const Scheme &scheme) = 0;
+        virtual void execute(const Scheme& scheme) = 0;
 
         // FlagI
-        virtual void execute(const Scheme &scheme, std::istream& input) = 0;
+        virtual void execute(const Scheme& scheme, std::istream& input) = 0;
 
         // FlagO
-        virtual void execute(const Scheme &scheme, std::ostream& output) = 0;
+        virtual void execute(const Scheme& scheme, std::ostream& output) = 0;
 
         // FlagIO
-        virtual void execute(const Scheme &scheme, std::istream& input, std::ostream& output) = 0;
+        virtual void execute(const Scheme& scheme, std::istream& input, std::ostream& output) = 0;
     };
 
     class WorkflowExecutor : public Parser, public Validator, public Executor {
-        void execute_with_ctx(const Scheme &scheme, Context& ctx) override;
+        void execute_with_ctx(const Scheme& scheme, Context& ctx) override;
+
     public:
-        [[nodiscard]] Scheme parse(const TextContainer &text) const override;
+        [[nodiscard]] Scheme parse(const TextContainer& text) const override;
 
-        void validate(const Scheme &scheme, InputOutputMode mode) const override;
+        void validate(const Scheme& scheme, InputOutputMode mode) const override;
 
-        void execute(const Scheme &scheme) override;
+        void execute(const Scheme& scheme) override;
 
         // FlagI
-        void execute(const Scheme &scheme, std::istream& input) override;
+        void execute(const Scheme& scheme, std::istream& input) override;
 
         // FlagO
-        void execute(const Scheme &scheme, std::ostream& output) override;
+        void execute(const Scheme& scheme, std::ostream& output) override;
 
         // FlagIO
-        void execute(const Scheme &scheme, std::istream& input, std::ostream& output) override;
+        void execute(const Scheme& scheme, std::istream& input, std::ostream& output) override;
     };
 
     class ReadfileWorker : public Worker {
     public:
-        void run_operation(const ArgumentList &arguments, Context &context) override;
+        void run_operation(const ArgumentList& arguments, Context& context) override;
+
         inline bool check_arguments(const ArgumentList& arguments) override {
             return arguments.size() == 1;
         };
@@ -95,7 +98,8 @@ namespace Workflow {
 
     class WritefileWorker : public Worker {
     public:
-        void run_operation(const ArgumentList &arguments, Context &context) override;
+        void run_operation(const ArgumentList& arguments, Context& context) override;
+
         inline bool check_arguments(const ArgumentList& arguments) override {
             return arguments.size() == 1;
         };
@@ -103,7 +107,8 @@ namespace Workflow {
 
     class GrepWorker : public Worker {
     public:
-        void run_operation(const ArgumentList &arguments, Context &context) override;
+        void run_operation(const ArgumentList& arguments, Context& context) override;
+
         inline bool check_arguments(const ArgumentList& arguments) override {
             return arguments.size() == 1;
         };
@@ -111,7 +116,8 @@ namespace Workflow {
 
     class SortWorker : public Worker {
     public:
-        void run_operation(const ArgumentList &arguments, Context &context) override;
+        void run_operation(const ArgumentList& arguments, Context& context) override;
+
         inline bool check_arguments(const ArgumentList& arguments) override {
             return arguments.empty();
         };
@@ -119,7 +125,8 @@ namespace Workflow {
 
     class ReplaceWorker : public Worker {
     public:
-        void run_operation(const ArgumentList &arguments, Context &context) override;
+        void run_operation(const ArgumentList& arguments, Context& context) override;
+
         inline bool check_arguments(const ArgumentList& arguments) override {
             return arguments.size() == 2;
         };
@@ -127,7 +134,8 @@ namespace Workflow {
 
     class DumpWorker : public Worker {
     public:
-        void run_operation(const ArgumentList &arguments, Context &context) override;
+        void run_operation(const ArgumentList& arguments, Context& context) override;
+
         inline bool check_arguments(const ArgumentList& arguments) override {
             return arguments.size() == 1;
         };

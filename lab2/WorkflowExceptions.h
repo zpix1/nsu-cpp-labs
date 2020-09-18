@@ -48,4 +48,21 @@ namespace Workflow {
             return element_idx;
         }
     };
+
+    class FileException : public std::exception {
+        std::string error_message;
+        std::string filename;
+    public:
+        explicit FileException(std::string  msg, std::string  filename) :
+                error_message(std::move(msg)),
+                filename(std::move(filename)) {};
+
+        [[nodiscard]] inline const char *what() const noexcept override {
+            return error_message.c_str();
+        }
+
+        inline std::string get_filename() const {
+            return filename;
+        }
+    };
 }
