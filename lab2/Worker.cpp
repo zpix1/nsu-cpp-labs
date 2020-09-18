@@ -103,7 +103,7 @@ auto str_to_worker_id(const std::string &str_id, int nline) {
     }
 
     if (id < 0) {
-        throw ParsingException("non-negative integer id expected, negative integer id found", nline);
+        throw ParsingException("non-negative integer id expected, negative id found", nline);
     }
 
     return id;
@@ -150,6 +150,7 @@ Scheme WorkflowExecutor::parse(const TextContainer &text) const {
     if (i != text.size() - 1) throw ParsingException("flow line is expected to be the last", i + 1);
 
     auto flow_tokens = string_split(text[i], " -> ");
+    if (flow_tokens == std::vector<std::string>{""}) return scheme;
     for (const auto &s: flow_tokens) {
         auto id = str_to_worker_id(s, i + 1);
         if (scheme.id2worker.count(id) == 0) throw ParsingException("undeclared id found", i + 1);
@@ -168,11 +169,9 @@ bool WorkflowExecutor::validate(const Scheme &scheme, const InputOutputMode mode
                                       id + 1);
         }
     }
-    // check flow
     if (mode == InputOutputMode::None) {
         return true;
     }
-    // Check size
     if (mode == InputOutputMode::FlagIO) {
         if (scheme.execution_flow.size() < 2) {
             throw ValidationException("not enough flow elements for file mode",
@@ -185,14 +184,14 @@ bool WorkflowExecutor::validate(const Scheme &scheme, const InputOutputMode mode
         }
     }
     // Check start read
-    if (mode == InputOutputMode::FlagI || mode == InputOutputMode::FlagIO) {
+    if (mode == InputOutputMode::FlagO || mode == InputOutputMode::FlagZero) {
         if ((dynamic_cast<ReadfileWorker *>(scheme.id2worker.at(scheme.execution_flow[0]).first.get()) == nullptr)) {
             throw ValidationException("read file worker does not present, but expected",
                                       ValidationException::ErrorDomain::ExecutionFlow, 1);
         }
     }
     // Check end write
-    if (mode == InputOutputMode::FlagO || mode == InputOutputMode::FlagIO) {
+    if (mode == InputOutputMode::FlagI || mode == InputOutputMode::FlagZero) {
         if ((dynamic_cast<WritefileWorker *>(scheme.id2worker.at(
                 scheme.execution_flow[scheme.execution_flow.size() - 1]).first.get()) == nullptr)) {
             throw ValidationException("write file worker does not present, but expected",
@@ -231,19 +230,19 @@ void WorkflowExecutor::execute(const Scheme &scheme) {
     execute_with_ctx(scheme, ctx);
 }
 
-void WorkflowExecutor::execute(const Scheme &scheme, std::istream& input) {
+void WorkflowExecutor::execute(const Scheme &scheme, std::istream &input) {
     Context ctx;
     readfile(input, ctx.text);
     execute_with_ctx(scheme, ctx);
 }
 
-void WorkflowExecutor::execute(const Scheme &scheme, std::ostream& output) {
+void WorkflowExecutor::execute(const Scheme &scheme, std::ostream &output) {
     Context ctx;
     execute_with_ctx(scheme, ctx);
     writefile(output, ctx.text);
 }
 
-void WorkflowExecutor::execute(const Scheme &scheme, std::istream& input, std::ostream& output) {
+void WorkflowExecutor::execute(const Scheme &scheme, std::istream &input, std::ostream &output) {
     Context ctx;
     readfile(input, ctx.text);
     execute_with_ctx(scheme, ctx);

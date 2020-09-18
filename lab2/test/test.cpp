@@ -47,8 +47,7 @@ TEST_CASE("ReplaceWorkerTest", "[worker]") {
                 "<replaced>cd",
                 "zzzz"
         });
-    }
-    SECTION("long to short") {
+    }SECTION("long to short") {
         Context c{
                 {"abcdefabcdef", "aabcdefa", "zzzz"}
         };
@@ -80,7 +79,7 @@ TEST_CASE("DumpWorkerTest", "[worker]") {
 }
 
 TEST_CASE("WorkflowExecutorTest", "[worker]") {
-    SECTION("correct instructions FlagZero") {
+    SECTION("valid instructions FlagZero") {
         TextContainer instructions{
                 "desc",
                 "1 = readfile in.txt",
@@ -102,12 +101,10 @@ TEST_CASE("WorkflowExecutorTest", "[worker]") {
             REQUIRE(scheme.id2worker[3].second.empty());
             REQUIRE(scheme.id2worker[4].second == ArgumentList{"out.txt"});
             REQUIRE(scheme.id2worker[5].second == ArgumentList{"abcd", "dcba"});
-        }
-        SECTION("validates correctly") {
+        }SECTION("validates correctly") {
             auto validation_result = worker.validate(scheme, InputOutputMode::FlagZero);
             REQUIRE(validation_result == true);
-        }
-        SECTION("runs correctly") {
+        }SECTION("runs correctly") {
             writefile("in.txt", TextContainer{
                     "jejeje lololo",
                     "z jeaaaaaaajeje",
@@ -124,7 +121,7 @@ TEST_CASE("WorkflowExecutorTest", "[worker]") {
             });
         }
     }
-    SECTION("correct instructions FlagIO") {
+    SECTION("valid instructions FlagIO") {
         TextContainer instructions{
                 "desc",
                 "2 = grep aaa",
@@ -142,12 +139,10 @@ TEST_CASE("WorkflowExecutorTest", "[worker]") {
             REQUIRE(scheme.id2worker[2].second == ArgumentList{"aaa"});
             REQUIRE(scheme.id2worker[3].second.empty());
             REQUIRE(scheme.id2worker[5].second == ArgumentList{"abcd", "dcba"});
-        }
-        SECTION("validates correctly") {
-            auto validation_result = worker.validate(scheme, InputOutputMode::FlagZero);
+        }SECTION("validates correctly") {
+            auto validation_result = worker.validate(scheme, InputOutputMode::FlagIO);
             REQUIRE(validation_result == true);
-        }
-        SECTION("runs correctly") {
+        }SECTION("runs correctly") {
             std::string input_str{
                     "jejeje lololo\n"
                     "z jeaaaaaaajeje\n"
@@ -166,6 +161,42 @@ TEST_CASE("WorkflowExecutorTest", "[worker]") {
                     "z jeaaaaaaajeje"
             });
         }
+    }SECTION("invalid instructions parsing exceptions") {
+        WorkflowExecutor worker;
+        std::vector<std::tuple<TextContainer, std::string, InputOutputMode> > tests{
+                {{"1 = readfile a.txt", "2 = sort",                                 "3 = writefile b.txt", "csed",                   "1 -> 2 -> 3"},                                       "desc",            InputOutputMode::FlagZero},
+                {{"desc",               "1 = readfile a.txt",                       "2 = sort",            "3 = writefile b.txt",    "1 -> 2 -> 3"},                                       "delimiter",       InputOutputMode::FlagZero},
+                {{"desc",               "1 = readfile a.txt",                       "2 sort",              "3 = writefile b.txt",    "csed",                "1 -> 2 -> 3"},                "delimiter",       InputOutputMode::FlagZero},
+                {{"desc",               "1 = readfile a.txt",                       "2 = sort",            "3 = wwwwritefile b.txt", "csed",                "1 -> 2 -> 3"},                "worker name",     InputOutputMode::FlagZero},
+                {{"desc",               "1 = readfile a.txt",                       "2 = sort",            "2 = dump",               "3 = writefile b.txt", "csed",        "1 -> 2 -> 3"}, "repetition",      InputOutputMode::FlagZero},
+                {{"desc",               "1 = readfile a.txt",                       "2 = sort",            "3 = writefile b.txt",    "csed",                "1 -> 2 -> 3", "trash"},       "flow line",       InputOutputMode::FlagZero},
+                {{"desc",               "1 = readfile a.txt",                       "2 = sort",            "3 = writefile b.txt",    "csed",                "1 -> 2 -> 3 -> 100"},         "undeclared id",   InputOutputMode::FlagZero},
+                {{"desc",               "kwkw = readfile a.txt",                    "2 = sort",            "3 = writefile b.txt",    "csed",                "1 -> 2 -> 3"},                "invalid id",      InputOutputMode::FlagZero},
+                {{"desc",               "12342134123412677676345 = readfile a.txt", "2 = sort",            "3 = writefile b.txt",    "csed",                "1 -> 2 -> 3"},                "out-of-range id", InputOutputMode::FlagZero},
+                {{"desc",               "-1 = readfile a.txt",                      "2 = sort",            "3 = writefile b.txt",    "csed",                "1 -> 2 -> 3"},                "negative id",     InputOutputMode::FlagZero},
+        };
+        for (const auto&[instructions, exception_text, mode] : tests) {
+            SECTION("exception " + exception_text) {
+                REQUIRE_THROWS_WITH(worker.parse(instructions), Catch::Contains(exception_text));
+            }
+        }
+    }SECTION("invalid instructions validating exceptions") {
+        WorkflowExecutor worker;
+        std::vector<std::tuple<TextContainer, std::string, InputOutputMode> > tests{
+                {{"desc", "1 = readfile a.txt b.txt", "2 = sort", "3 = writefile b.txt", "csed", "1 -> 2 -> 3"}, "invalid arguments",                               InputOutputMode::FlagZero},
+                {{"desc", "1 = readfile a.txt",       "2 = sort", "3 = writefile b.txt", "csed", ""},            "not enough flow elements",                        InputOutputMode::FlagI},
+                {{"desc", "1 = readfile a.txt",       "2 = sort", "3 = writefile b.txt", "csed", "1"},           "not enough flow elements",                        InputOutputMode::FlagZero},
+                {{"desc", "1 = readfile a.txt",       "2 = sort", "3 = writefile b.txt", "csed", "2 -> 3"},      "read file worker",                                InputOutputMode::FlagZero},
+                {{"desc", "1 = readfile a.txt",       "2 = sort", "3 = writefile b.txt", "csed", "1 -> 2"},      "write file worker",                               InputOutputMode::FlagZero},
+                {{"desc", "1 = readfile a.txt",       "2 = sort", "3 = writefile b.txt", "csed", "1 -> 2 -> 3"},      "read or write worker unexpected in command line", InputOutputMode::FlagI},
+                {{"desc", "1 = readfile a.txt",       "2 = sort", "3 = writefile b.txt", "csed", "1 -> 2 -> 3"},      "read or write worker unexpected in command", InputOutputMode::FlagO},
+                {{"desc", "1 = readfile a.txt",       "2 = sort", "3 = writefile b.txt", "csed", "1 -> 2 -> 3"}, "read or write worker unexpected in", InputOutputMode::FlagIO},
+        };
+        for (const auto&[instructions, exception_text, mode] : tests) {
+            SECTION("exception " + exception_text) {
+                Scheme s = worker.parse(instructions);
+                REQUIRE_THROWS_WITH(worker.validate(s, mode), Catch::Contains(exception_text));
+            }
+        }
     }
-
 }
