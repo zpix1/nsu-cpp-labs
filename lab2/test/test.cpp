@@ -161,7 +161,50 @@ TEST_CASE("WorkflowExecutorTest", "[worker]") {
                     "z jeaaaaaaajeje"
             });
         }
-    }SECTION("invalid instructions parsing exceptions") {
+    }
+    SECTION("empty flow instructions") {
+        TextContainer instructions{
+                "desc",
+                "2 = grep aaa",
+                "3 = sort",
+                "5 = replace abcd dcba",
+                "csed",
+                ""
+        };
+
+        WorkflowExecutor worker;
+        Scheme scheme;
+        scheme = worker.parse(instructions);
+        SECTION("parses correctly") {
+            REQUIRE(scheme.execution_flow.empty());
+            REQUIRE(scheme.id2worker[2].second == ArgumentList{"aaa"});
+            REQUIRE(scheme.id2worker[3].second.empty());
+            REQUIRE(scheme.id2worker[5].second == ArgumentList{"abcd", "dcba"});
+        }SECTION("validates correctly") {
+            auto validation_result = worker.validate(scheme, InputOutputMode::FlagIO);
+            REQUIRE(validation_result == true);
+        }SECTION("runs correctly") {
+            std::string input_str{
+                    "jejeje lololo\n"
+                    "z jeaaaaaaajeje\n"
+                    "a jejeje lololoaaa\n"
+                    "y aaa abcd\n"
+            };
+            std::stringstream input{input_str};
+            std::stringstream output;
+            worker.execute(scheme, input, output);
+
+            TextContainer out;
+            readfile(output, out);
+            REQUIRE(out == TextContainer{
+                    "jejeje lololo",
+                    "z jeaaaaaaajeje",
+                    "a jejeje lololoaaa",
+                    "y aaa abcd"
+            });
+        }
+    }
+    SECTION("invalid instructions parsing exceptions") {
         WorkflowExecutor worker;
         std::vector<std::tuple<TextContainer, std::string, InputOutputMode> > tests{
                 {{"1 = readfile a.txt", "2 = sort",                                 "3 = writefile b.txt", "csed",                   "1 -> 2 -> 3"},                                       "desc",            InputOutputMode::FlagZero},
@@ -180,7 +223,8 @@ TEST_CASE("WorkflowExecutorTest", "[worker]") {
                 REQUIRE_THROWS_WITH(worker.parse(instructions), Catch::Contains(exception_text));
             }
         }
-    }SECTION("invalid instructions validating exceptions") {
+    }
+    SECTION("invalid instructions validating exceptions") {
         WorkflowExecutor worker;
         std::vector<std::tuple<TextContainer, std::string, InputOutputMode> > tests{
                 {{"desc", "1 = readfile a.txt b.txt", "2 = sort", "3 = writefile b.txt", "csed", "1 -> 2 -> 3"}, "invalid arguments",                               InputOutputMode::FlagZero},

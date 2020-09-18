@@ -172,7 +172,7 @@ bool WorkflowExecutor::validate(const Scheme &scheme, const InputOutputMode mode
     if (mode == InputOutputMode::None) {
         return true;
     }
-    if (mode == InputOutputMode::FlagIO) {
+    if (mode == InputOutputMode::FlagZero) {
         if (scheme.execution_flow.size() < 2) {
             throw ValidationException("not enough flow elements for file mode",
                                       ValidationException::ErrorDomain::ExecutionFlow, 1);
