@@ -1,7 +1,3 @@
-//
-// Created by John on 18.09.2020.
-//
-
 #ifndef LAB2_UTILITY_H
 #define LAB2_UTILITY_H
 
@@ -12,7 +8,6 @@
 #include <sys/stat.h>
 
 namespace Workflow {
-
     inline void file_should_exist(const std::string& filename) {
         struct stat buffer;
         if (stat(filename.c_str(), &buffer) != 0) throw FileException("file does not exist", filename);
