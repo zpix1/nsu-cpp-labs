@@ -18,14 +18,13 @@ void WritefileWorker::run_operation(const ArgumentList& arguments, Context& cont
 
 void GrepWorker::run_operation(const ArgumentList& arguments, Context& context) {
     auto egrep_re = std::regex(arguments[0]);
-    TextContainer new_text;
-    for (const auto& str: context.text) {
-        std::smatch base_match;
-        if (std::regex_search(str, egrep_re)) {
-            new_text.push_back(str);
+    for (auto it = context.text.begin(); it != context.text.end(); ) {
+        if (!std::regex_search(*it, egrep_re)) {
+            context.text.erase(it);
+        } else {
+            it++;
         }
     }
-    context.text = new_text;
 }
 
 void SortWorker::run_operation(const ArgumentList& arguments, Context& context) {
