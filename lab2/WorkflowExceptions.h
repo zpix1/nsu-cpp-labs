@@ -15,7 +15,7 @@ namespace Workflow {
             return error_message.c_str();
         }
 
-        inline std::size_t get_line_idx() const {
+        [[nodiscard]] inline std::size_t get_line_idx() const {
             return line_idx;
         }
     };
@@ -44,7 +44,7 @@ namespace Workflow {
             return domain;
         }
 
-        inline auto get_element_idx() const {
+        [[nodiscard]] inline auto get_element_idx() const {
             return element_idx;
         }
     };
@@ -61,7 +61,7 @@ namespace Workflow {
             return error_message.c_str();
         }
 
-        inline std::string get_filename() const {
+        [[nodiscard]] inline std::string get_filename() const {
             return filename;
         }
     };

@@ -1,6 +1,5 @@
 #include <iostream>
 #include <memory>
-#include <iostream>
 
 #include "thirdparty/CLI11.hpp"
 
@@ -10,37 +9,37 @@
 int main(int argc, char **argv) {
     CLI::App app{"Workflow Executor"};
 
-    std::string inputfilename, outputfilename, instructionsfilename;
-    app.add_option("-i, --input", inputfilename, "Input file");
-    app.add_option("-o, --output", outputfilename, "Output file");
-    app.add_option("instructions", instructionsfilename, "Workflow instructions file")->required();
+    std::string input_filename, output_filename, instructions_filename;
+    app.add_option("-i, --input", input_filename, "Input file");
+    app.add_option("-o, --output", output_filename, "Output file");
+    app.add_option("instructions", instructions_filename, "Workflow instructions file")->required();
 
-    CLI11_PARSE(app, argc, argv);
+    CLI11_PARSE(app, argc, argv)
 
     bool is_input_provided = app.count("-i");
     bool is_output_provided = app.count("-o");
     try {
-        if (is_input_provided) Workflow::file_should_exist(inputfilename);
+        if (is_input_provided) Workflow::file_should_exist(input_filename);
 
         Workflow::TextContainer instructions;
-        Workflow::readfile(instructionsfilename, instructions);
+        Workflow::readfile(instructions_filename, instructions);
         Workflow::WorkflowExecutor worker;
 
         auto scheme = worker.parse(instructions);
 
         if (is_input_provided && is_output_provided) {
             worker.validate(scheme, Workflow::InputOutputMode::FlagIO);
-            std::ifstream input(inputfilename);
-            std::ofstream output(outputfilename);
+            std::ifstream input(input_filename);
+            std::ofstream output(output_filename);
             worker.execute(scheme, input, output);
         } else if (is_input_provided) {
             std::cout << "I mode" << std::endl;
             worker.validate(scheme, Workflow::InputOutputMode::FlagI);
-            std::ifstream input(inputfilename);
+            std::ifstream input(input_filename);
             worker.execute(scheme, input);
         } else if (is_output_provided) {
             worker.validate(scheme, Workflow::InputOutputMode::FlagI);
-            std::ofstream output(outputfilename);
+            std::ofstream output(output_filename);
             worker.execute(scheme, output);
         } else {
             worker.validate(scheme, Workflow::InputOutputMode::FlagZero);

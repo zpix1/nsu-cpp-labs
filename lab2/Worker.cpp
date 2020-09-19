@@ -1,7 +1,6 @@
 #include "Worker.h"
 #include "utility.h"
 #include <fstream>
-#include <iostream>
 #include <algorithm>
 #include <sstream>
 #include <regex>
@@ -17,21 +16,16 @@ void WritefileWorker::run_operation(const ArgumentList& arguments, Context& cont
 }
 
 void GrepWorker::run_operation(const ArgumentList& arguments, Context& context) {
-    auto egrep_re = std::regex(arguments[0]);
-    for (auto it = context.text.begin(); it != context.text.end(); ) {
-        if (!std::regex_search(*it, egrep_re)) {
-            context.text.erase(it);
-        } else {
-            it++;
-        }
-    }
+    auto egrep_regex = std::regex(arguments[0]);
+    context.text.erase(std::remove_if(context.text.begin(), context.text.end(), [egrep_regex](const auto& str) {
+        return !std::regex_search(str, egrep_regex);
+    }), context.text.end());
 }
 
 void SortWorker::run_operation(const ArgumentList& arguments, Context& context) {
     std::sort(context.text.begin(), context.text.end());
 }
 
-// TODO: replace it with regex way
 auto replace_all(std::string& str, const std::string& replace_from, const std::string& replace_to) {
     return std::regex_replace(str, std::regex(replace_from), replace_to);
 }
@@ -40,6 +34,7 @@ void ReplaceWorker::run_operation(const ArgumentList& arguments, Context& contex
     auto replace_from = arguments[0];
     auto replace_to = arguments[1];
     for (std::string& str: context.text) {
+        // std::regex_replace doesn't support inplace replacing
         str = replace_all(str, replace_from, replace_to);
     }
 }
@@ -80,6 +75,7 @@ std::unique_ptr<Worker> get_worker_by_name(std::string_view name) {
     return nullptr;
 }
 
+// std::stoi converts strings with floating point numbers (like 4.0 or 2.3) without exceptions
 auto str_to_worker_id(const std::string& str_id, int nline) {
     WorkerID id;
     try {
@@ -133,6 +129,7 @@ Scheme WorkflowExecutor::parse(const TextContainer& text) const {
     }
     i++;
 
+    // Empty lines are allowed in FlagIO mode
     if (i == text.size()) return scheme;
 
     if (i != text.size() - 1) throw ParsingException("flow line is expected to be the last", i + 1);
@@ -148,8 +145,9 @@ Scheme WorkflowExecutor::parse(const TextContainer& text) const {
     return scheme;
 }
 
+// dynamic_case can be changed to checking working property (with adding an additional method)
 void WorkflowExecutor::validate(const Scheme& scheme, InputOutputMode mode) const {
-    // check arguments for each worker
+    // Check arguments for each worker
     for (const auto&[id, worker_with_arguments]: scheme.id2worker) {
         if (!worker_with_arguments.first->check_arguments(worker_with_arguments.second)) {
             throw ValidationException("invalid arguments for worker",
