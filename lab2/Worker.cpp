@@ -17,7 +17,7 @@ void WritefileWorker::run_operation(const ArgumentList& arguments, Context& cont
 
 void GrepWorker::run_operation(const ArgumentList& arguments, Context& context) {
     auto egrep_regex = std::regex(arguments[0]);
-    context.text.erase(std::remove_if(context.text.begin(), context.text.end(), [egrep_regex](const auto& str) {
+    context.text.erase(std::remove_if(context.text.begin(), context.text.end(), [&egrep_regex](const auto& str) {
         return !std::regex_search(str, egrep_regex);
     }), context.text.end());
 }
