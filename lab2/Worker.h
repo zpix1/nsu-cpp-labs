@@ -91,7 +91,7 @@ namespace Workflow {
     public:
         void run_operation(const ArgumentList& arguments, Context& context) override;
 
-        inline bool check_arguments(const ArgumentList& arguments) override {
+        bool check_arguments(const ArgumentList& arguments) override {
             return arguments.size() == 1;
         };
     };
@@ -100,7 +100,7 @@ namespace Workflow {
     public:
         void run_operation(const ArgumentList& arguments, Context& context) override;
 
-        inline bool check_arguments(const ArgumentList& arguments) override {
+        bool check_arguments(const ArgumentList& arguments) override {
             return arguments.size() == 1;
         };
     };
@@ -109,7 +109,7 @@ namespace Workflow {
     public:
         void run_operation(const ArgumentList& arguments, Context& context) override;
 
-        inline bool check_arguments(const ArgumentList& arguments) override {
+        bool check_arguments(const ArgumentList& arguments) override {
             return arguments.size() == 1;
         };
     };
@@ -118,7 +118,7 @@ namespace Workflow {
     public:
         void run_operation(const ArgumentList& arguments, Context& context) override;
 
-        inline bool check_arguments(const ArgumentList& arguments) override {
+        bool check_arguments(const ArgumentList& arguments) override {
             return arguments.empty();
         };
     };
@@ -127,7 +127,7 @@ namespace Workflow {
     public:
         void run_operation(const ArgumentList& arguments, Context& context) override;
 
-        inline bool check_arguments(const ArgumentList& arguments) override {
+        bool check_arguments(const ArgumentList& arguments) override {
             return arguments.size() == 2;
         };
     };
@@ -136,7 +136,7 @@ namespace Workflow {
     public:
         void run_operation(const ArgumentList& arguments, Context& context) override;
 
-        inline bool check_arguments(const ArgumentList& arguments) override {
+        bool check_arguments(const ArgumentList& arguments) override {
             return arguments.size() == 1;
         };
     };
