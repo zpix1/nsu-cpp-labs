@@ -1,8 +1,14 @@
+#pragma once
+
 #include <vector>
 #include <utility>
 
+#include "GameView.h"
+
+const int FIELD_SIZE = 10;
+
 enum class MoveResult {
-    Hit, Missed, Destroyed
+    Missed, Hit, Destroyed
 };
 
 enum class BattlefieldCellState {
@@ -29,15 +35,37 @@ class AnotherGamer {
 };
 
 class Gamer {
-    virtual void init(int width, int height, const Ships& ships) = 0;
+    virtual void init(GameView& gameview) = 0;
+    
     virtual std::pair<Move, MoveResult> make_move(const AnotherGamer& callback_gamer) = 0;
+    
+    virtual bool lost() const = 0;
 };
 
 class RandomGamer: Gamer, AnotherGamer {
     Battlefield my_field;
     Battlefield opponent_field;
 
+public:
     MoveResult check_move(Move move);
-    void init(int width, int heigth, const Ships& ships);
+    
+    void init(EmptyGameView& gameview);
+    
     std::pair<Move, MoveResult> make_move(const AnotherGamer& callback_gamer);
+    
+    bool lost() const;
+};
+
+class ConsoleGamer: Gamer, AnotherGamer {
+    Battlefield my_field;
+    Battlefield opponent_field;
+
+public:
+    MoveResult check_move(Move move);
+    
+    void init(InteractiveGameView& gameview);
+    
+    std::pair<Move, MoveResult> make_move(const AnotherGamer& callback_gamer);
+
+    bool lost() const;
 };
