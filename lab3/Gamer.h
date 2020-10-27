@@ -3,69 +3,44 @@
 #include <vector>
 #include <utility>
 
+#include "utils.h"
 #include "GameView.h"
 
-const int FIELD_SIZE = 10;
-
-enum class MoveResult {
-    Missed, Hit, Destroyed
-};
-
-enum class BattlefieldCellState {
-    Empty, Unknown, Locked, Hit, Destroyed, Ship
-};
-
-struct Move {
-    int x, y;
-};
-
-struct Ship {
-    int width, height;
-};
-
-using Ships = std::vector<Ship>;
-
-struct Battlefield {
-    int width, height;
-    std::vector< std::vector <BattlefieldCellState> > data;
-};
-
 class AnotherGamer {
-    MoveResult check_move(Move move);
+    virtual MoveResult check_move(Move move) = 0;
 };
 
 class Gamer {
-    virtual void init(GameView& gameview) = 0;
+    virtual void init(GameView& game_view) = 0; // ?
     
     virtual std::pair<Move, MoveResult> make_move(const AnotherGamer& callback_gamer) = 0;
     
     virtual bool lost() const = 0;
 };
 
-class RandomGamer: Gamer, AnotherGamer {
-    Battlefield my_field;
-    Battlefield opponent_field;
+class RandomGamer: public Gamer, public AnotherGamer {
 
 public:
-    MoveResult check_move(Move move);
+    Battlefield my_field;
+    MoveResult check_move(Move move) override;
     
-    void init(EmptyGameView& gameview);
+    void init(GameView& game_view) override; // ?
     
-    std::pair<Move, MoveResult> make_move(const AnotherGamer& callback_gamer);
+    std::pair<Move, MoveResult> make_move(const AnotherGamer& callback_gamer) override;
     
-    bool lost() const;
+    bool lost() const override;
 };
 
-class ConsoleGamer: Gamer, AnotherGamer {
+class ConsoleGamer: public Gamer, public AnotherGamer {
     Battlefield my_field;
     Battlefield opponent_field;
 
 public:
-    MoveResult check_move(Move move);
+    MoveResult check_move(Move move) override;
     
-    void init(InteractiveGameView& gameview);
+    void init(GameView& game_view) override; // ?
     
-    std::pair<Move, MoveResult> make_move(const AnotherGamer& callback_gamer);
+    std::pair<Move, MoveResult> make_move(const AnotherGamer& callback_gamer) override;
 
-    bool lost() const;
+    bool lost() const override;
 };
