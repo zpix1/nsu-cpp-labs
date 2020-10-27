@@ -2,14 +2,87 @@
 
 #include <iostream>
 
-// Random gamer
-
 bool is_valid_point(int x, int y) {
-    if (x >= 0 && x < FIELD_WIDTH)
-        if (y >= 0 && y < FIELD_HEIGHT)
+    if (x >= 0 && x < FIELD_HEIGHT)
+        if (y >= 0 && y < FIELD_WIDTH)
             return true;
     return false;
 }
+
+bool ship_dfs_is_alive(std::vector<std::vector<bool>>& used, const Battlefield& field, int x, int y) {
+    if (used[x][y])
+        return false;
+    used[x][y] = true;
+    if (field[x][y] == BattlefieldCellState::Ship)
+        return true;
+    if (field[x][y] != BattlefieldCellState::Hit)
+        return false;
+    bool is_alive = false;
+    for (const auto[x_neighbour, y_neighbour]: NEIGHBOURS) {
+        int x_check = x + x_neighbour;
+        int y_check = y + y_neighbour;
+        if (is_valid_point(x_check, y_check)) {
+            is_alive = is_alive || ship_dfs_is_alive(used, field, x_check, y_check);
+        }
+    }
+    return is_alive;
+}
+
+// Ship is alive if only at least one of its cells is alive
+bool is_ship_alive(const Battlefield& field, int x, int y) {
+    std::vector<std::vector<bool>> used(FIELD_HEIGHT, std::vector<bool>(FIELD_WIDTH));
+    return ship_dfs_is_alive(used, field, x, y);
+}
+
+void ship_dfs_destroy(std::vector<std::vector<bool>>& used, Battlefield& field, int x, int y) {
+    if (used[x][y])
+        return;
+    used[x][y] = true;
+    if (field[x][y] != BattlefieldCellState::Hit)
+        return;
+    field[x][y] = BattlefieldCellState::Destroyed;
+    for (const auto[x_neighbour, y_neighbour]: NEIGHBOURS) {
+        int x_check = x + x_neighbour;
+        int y_check = y + y_neighbour;
+        if (is_valid_point(x_check, y_check)) {
+            ship_dfs_destroy(used, field, x_check, y_check);
+        }
+    }
+}
+
+// Ship is alive if only at least one of its cells is alive
+void ship_destroy(Battlefield& field, int x, int y) {
+    std::vector<std::vector<bool>> used(FIELD_HEIGHT, std::vector<bool>(FIELD_WIDTH));
+    ship_dfs_destroy(used, field, x, y);
+}
+
+MoveResult UtilityGamer::check_move(Move move) {
+    int x = move.x;
+    int y = move.y;
+    if (my_field[x][y] == BattlefieldCellState::Ship) {
+        my_field[x][y] = BattlefieldCellState::Hit;
+        bool is_alive = is_ship_alive(my_field, x, y);
+        if (!is_alive) {
+            ships_count--;
+            ship_destroy(my_field, x, y);
+            return MoveResult::Destroyed;
+        }
+        return MoveResult::Hit;
+    }
+    if (my_field[x][y] == BattlefieldCellState::Hit) {
+        return MoveResult::Hit;
+    }
+    if (my_field[x][y] == BattlefieldCellState::Destroyed) {
+        return MoveResult::Destroyed;
+    }
+    return MoveResult::Missed;
+}
+
+bool UtilityGamer::lost() const {
+    return ships_count == 0;
+}
+
+// Random gamer stuff
 
 void RandomGamer::init(GameView&) {
     for (int i = 0; i < FIELD_HEIGHT; i++) {
@@ -23,8 +96,8 @@ void RandomGamer::init(GameView&) {
         }
         for (const auto& ship: ship_rotations) {
             for (int tryno = 0; tryno < 100; tryno++) {
-                int x = rand() % FIELD_WIDTH;
-                int y = rand() % FIELD_HEIGHT;
+                int x = rand() % FIELD_HEIGHT;
+                int y = rand() % FIELD_WIDTH;
                 for (const auto[direction_x, direction_y]: DIRECTIONS) {
                     bool can_place = true;
                     for (int x_part_pos = x;
@@ -69,16 +142,9 @@ void RandomGamer::init(GameView&) {
     }
 }
 
-MoveResult RandomGamer::check_move(Move move) {
-    return MoveResult::Destroyed;
-}
-
-std::pair<Move, MoveResult> RandomGamer::make_move(const AnotherGamer& callback_gamer) {
-    return std::pair<Move, MoveResult>();
-}
-
-bool RandomGamer::lost() const {
-    return false;
+std::pair<Move, MoveResult> RandomGamer::make_move(AnotherGamer& callback_gamer) {
+    const Move move = {rand() % FIELD_HEIGHT, rand() % FIELD_WIDTH};
+    return std::pair<Move, MoveResult>{move, callback_gamer.check_move(move)};
 }
 
 // Console gamer stuff
@@ -87,14 +153,6 @@ void ConsoleGamer::init(GameView& game_view) {
 
 }
 
-MoveResult ConsoleGamer::check_move(Move move) {
-    return MoveResult::Destroyed;
-}
-
-std::pair<Move, MoveResult> ConsoleGamer::make_move(const AnotherGamer& callback_gamer) {
+std::pair<Move, MoveResult> ConsoleGamer::make_move(AnotherGamer& callback_gamer) {
     return std::pair<Move, MoveResult>();
-}
-
-bool ConsoleGamer::lost() const {
-    return false;
 }

@@ -3,7 +3,7 @@
 #include <iostream>
 
 void ConsoleGameView::render_field(const Battlefield& field) {
-    std::cout << "  ";
+    std::cout << " ";
     for (int j = 0; j < FIELD_WIDTH; j++) {
         std::cout << j;
     }

@@ -65,8 +65,8 @@ const std::unordered_map<BattlefieldCellState, char> STATE2CHAR{
         {BattlefieldCellState::Ship,      '#'},
         {BattlefieldCellState::Empty,     ' '},
         {BattlefieldCellState::Unknown,   '?'},
-        {BattlefieldCellState::Destroyed, '.'},
-        {BattlefieldCellState::Hit,       '.'},
+        {BattlefieldCellState::Destroyed, 'D'},
+        {BattlefieldCellState::Hit,       'H'},
         {BattlefieldCellState::Locked,    '_'}
 };
 

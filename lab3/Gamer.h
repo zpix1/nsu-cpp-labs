@@ -7,40 +7,42 @@
 #include "GameView.h"
 
 class AnotherGamer {
+public:
     virtual MoveResult check_move(Move move) = 0;
 };
 
 class Gamer {
-    virtual void init(GameView& game_view) = 0; // ?
-    
-    virtual std::pair<Move, MoveResult> make_move(const AnotherGamer& callback_gamer) = 0;
-    
-    virtual bool lost() const = 0;
+    virtual void init(GameView& game_view) = 0;
+
+    virtual std::pair<Move, MoveResult> make_move(AnotherGamer& callback_gamer) = 0;
+
+    [[nodiscard]] virtual bool lost() const = 0;
 };
 
-class RandomGamer: public Gamer, public AnotherGamer {
+class UtilityGamer : public Gamer, public AnotherGamer {
+public:
+    int ships_count = SHIPS.size();
+    Battlefield my_field;
+
+    MoveResult check_move(Move move) override;
+
+    [[nodiscard]] bool lost() const override;
+};
+
+class RandomGamer : public UtilityGamer {
 
 public:
-    Battlefield my_field;
-    MoveResult check_move(Move move) override;
-    
-    void init(GameView& game_view) override; // ?
-    
-    std::pair<Move, MoveResult> make_move(const AnotherGamer& callback_gamer) override;
-    
-    bool lost() const override;
+
+    void init(GameView& game_view) override;
+
+    std::pair<Move, MoveResult> make_move(AnotherGamer& callback_gamer) override;
 };
 
-class ConsoleGamer: public Gamer, public AnotherGamer {
-    Battlefield my_field;
+class ConsoleGamer : public UtilityGamer {
     Battlefield opponent_field;
 
 public:
-    MoveResult check_move(Move move) override;
-    
-    void init(GameView& game_view) override; // ?
-    
-    std::pair<Move, MoveResult> make_move(const AnotherGamer& callback_gamer) override;
+    void init(GameView& game_view) override;
 
-    bool lost() const override;
+    std::pair<Move, MoveResult> make_move(AnotherGamer& callback_gamer) override;
 };
