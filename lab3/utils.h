@@ -4,8 +4,8 @@
 #include <vector>
 #include <utility>
 
-const int FIELD_WIDTH = 10;
-const int FIELD_HEIGHT = 10;
+const int FIELD_WIDTH = 4;
+const int FIELD_HEIGHT = 4;
 
 enum class MoveResult {
     Missed, Hit, Destroyed
@@ -34,14 +34,14 @@ using Battlefield = std::vector<std::vector<BattlefieldCellState> >;
 const Ships SHIPS = {
         {1, 4},
         {1, 3},
-        {1, 3},
-        {1, 2},
-        {1, 2},
-        {1, 2},
-        {1, 1},
-        {1, 1},
-        {1, 1},
-        {1, 1}
+//        {1, 3},
+//        {1, 2},
+//        {1, 2},
+//        {1, 2},
+//        {1, 1},
+//        {1, 1},
+//        {1, 1},
+//        {1, 1}
 };
 
 const std::vector<std::pair<int, int>> DIRECTIONS = {
@@ -67,7 +67,13 @@ const std::unordered_map<BattlefieldCellState, char> STATE2CHAR{
         {BattlefieldCellState::Unknown,   '?'},
         {BattlefieldCellState::Destroyed, 'D'},
         {BattlefieldCellState::Hit,       'H'},
-        {BattlefieldCellState::Locked,    '_'}
+        {BattlefieldCellState::Locked,    ' '}
 };
 
 
+inline bool is_valid_point(int x, int y) {
+    if (x >= 0 && x < FIELD_HEIGHT)
+        if (y >= 0 && y < FIELD_WIDTH)
+            return true;
+    return false;
+}

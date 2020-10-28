@@ -14,8 +14,8 @@ std::string move_result_to_string(MoveResult result) {
     return "???";
 }
 
-int main() {
-    RandomGamer a_gamer;
+int play_game() {
+    ConsoleGamer a_gamer;
     RandomGamer b_gamer;
 
     ConsoleGameView game_view;
@@ -23,36 +23,53 @@ int main() {
     a_gamer.init(game_view);
     b_gamer.init(game_view);
 
-
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "EndlessLoop"
     while (true) {
         // Gamer A move
-        auto[a_move, a_move_result] = a_gamer.make_move(b_gamer);
+        while (true) {
+            auto[a_move, a_move_result] = a_gamer.make_move(game_view, b_gamer);
 
-        game_view.log("Gamer A selected cell " + std::to_string(a_move.x) + ":" + std::to_string(a_move.y));
-        game_view.log("Result: " + move_result_to_string(a_move_result));
+            game_view.log("Gamer A selected cell " + std::to_string(a_move.x) + ":" + std::to_string(a_move.y));
+            game_view.log("Result: " + move_result_to_string(a_move_result));
 
-        game_view.render_field(b_gamer.my_field);
-
-        if (b_gamer.lost()) {
-            game_view.log("Gamer A won; Game ended;");
-            break;
+            if (b_gamer.lost()) {
+                game_view.log("Gamer A won; Game ended;");
+                game_view.log("Thanks for playing!");
+                return 0;
+            }
+            if (a_move_result == MoveResult::Missed) {
+                break;
+            }
+            game_view.log("Gamer A succeed, he can make another move");
         }
+
+        game_view.pause();
 
         // Gamer B move
-        auto[b_move, b_move_result] = b_gamer.make_move(a_gamer);
+        while (true) {
+            auto[b_move, b_move_result] = b_gamer.make_move(game_view, a_gamer);
 
-        game_view.log("Gamer B selected cell " + std::to_string(b_move.x) + ":" + std::to_string(b_move.y));
-        game_view.log("Result: " + move_result_to_string(b_move_result));
+            game_view.log("Gamer B selected cell " + std::to_string(b_move.x) + ":" + std::to_string(b_move.y));
+            game_view.log("Result: " + move_result_to_string(b_move_result));
 
-        game_view.render_field(a_gamer.my_field);
-
-        if (a_gamer.lost()) {
-            game_view.log("Gamer B won; Game ended;");
-            break;
+            if (a_gamer.lost()) {
+                game_view.log("Gamer B won; Game ended;");
+                game_view.log("Thanks for playing!");
+                return 1;
+            }
+            if (b_move_result == MoveResult::Missed) {
+                break;
+            }
+            game_view.log("Gamer B succeed, he can make another move");
         }
+
+        game_view.pause();
     }
+#pragma clang diagnostic pop
+}
 
-    game_view.log("Thanks for playing!");
-
+int main() {
+    int res = play_game();
     return 0;
 }

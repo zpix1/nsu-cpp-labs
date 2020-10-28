@@ -14,7 +14,7 @@ public:
 class Gamer {
     virtual void init(GameView& game_view) = 0;
 
-    virtual std::pair<Move, MoveResult> make_move(AnotherGamer& callback_gamer) = 0;
+    virtual std::pair<Move, MoveResult> make_move(InteractiveGameView& game_view, AnotherGamer& callback_gamer) = 0;
 
     [[nodiscard]] virtual bool lost() const = 0;
 };
@@ -35,7 +35,7 @@ public:
 
     void init(GameView& game_view) override;
 
-    std::pair<Move, MoveResult> make_move(AnotherGamer& callback_gamer) override;
+    std::pair<Move, MoveResult> make_move(InteractiveGameView& game_view, AnotherGamer& callback_gamer) override;
 };
 
 class ConsoleGamer : public UtilityGamer {
@@ -44,5 +44,5 @@ class ConsoleGamer : public UtilityGamer {
 public:
     void init(GameView& game_view) override;
 
-    std::pair<Move, MoveResult> make_move(AnotherGamer& callback_gamer) override;
+    std::pair<Move, MoveResult> make_move(InteractiveGameView& game_view, AnotherGamer& callback_gamer) override;
 };

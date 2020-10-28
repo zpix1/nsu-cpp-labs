@@ -22,10 +22,33 @@ Battlefield ConsoleGameView::ask_for_ships_placement() {
 }
 
 Move ConsoleGameView::ask_for_move(const std::string& invite) {
-    return Move();
+    log("Please enter x, y:");
+    int x, y;
+    while (true) {
+        std::cin >> x >> y;
+        if (is_valid_point(x, y)) {
+            return Move{x, y};
+        } else {
+            log("Invalid x or y. Please try again:");
+        }
+    }
 }
 
 void ConsoleGameView::log(const std::string& message) {
     std::cout << message << std::endl;
+}
+
+void ConsoleGameView::clear() {
+#if defined _WIN32
+    system("cls");
+#elif defined (__LINUX__) || defined(__gnu_linux__) || defined(__linux__)
+    system("clear");
+#elif defined (__APPLE__)
+    system("clear");
+#endif
+}
+
+void ConsoleGameView::pause() {
+    system("pause");
 }
 
