@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <unordered_set>
 #include <utility>
 
 #include "utils.h"
@@ -21,7 +22,7 @@ class Gamer {
 
 class UtilityGamer : public Gamer, public AnotherGamer {
 public:
-    int ships_count = SHIPS.size();
+    int ships_count = 0;
     Battlefield my_field;
 
     MoveResult check_move(Move move) override;
@@ -47,13 +48,36 @@ public:
     std::pair<Move, MoveResult> make_move(InteractiveGameView& game_view, AnotherGamer& callback_gamer) override;
 };
 
-class StrategyGamer : public UtilityGamer {
-    Battlefield opponent_field;
+//const static std::unordered_set<Direction> all_directions =
 
-    bool hit_last_time = false;
-    Move last_hit_move;
+class StrategyGamer : public UtilityGamer {
+    enum class State {
+        Search,
+        IdentifyDirection,
+        FinishOff
+    };
+
+    std::vector<int> field_cell_order;
+
+    State state = State::Search;
+
+
+    Move first_hit;
+    Move current_hit;
+
+    const std::unordered_set<Direction> all_directions = {
+            {0, 1},
+            {0, -1},
+            {1, 0},
+            {-1, 0}
+    };
+
+    std::unordered_set<Direction> possible_directions = all_directions;
+
+    Direction current_direction;
 
 public:
+    Battlefield opponent_field;
     void init(GameView& game_view) override;
 
     std::pair<Move, MoveResult> make_move(InteractiveGameView& game_view, AnotherGamer& callback_gamer) override;

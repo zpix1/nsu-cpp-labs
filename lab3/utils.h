@@ -40,7 +40,26 @@ const Ships SHIPS = {
         {1, 1}
 };
 
-const std::vector<std::pair<int, int>> DIRECTIONS = {
+
+struct Direction {
+    int x, y;
+
+    bool operator==(const Direction& b) const {
+        return x == b.x && y == b.y;
+    }
+};
+
+namespace std {
+    template<>
+    struct hash<Direction> {
+        size_t operator()(const Direction& obj) const {
+            return hash<int>()(obj.x + obj.y * FIELD_HEIGHT);
+        }
+    };
+}
+
+
+const std::vector<Direction> DIRECTIONS = {
         {1,  1},
         {1,  -1},
         {-1, 1},
@@ -70,6 +89,14 @@ const std::unordered_map<BattlefieldCellState, char> STATE2CHAR{
 inline bool is_valid_point(int x, int y) {
     if (x >= 0 && x < FIELD_HEIGHT)
         if (y >= 0 && y < FIELD_WIDTH)
+            return true;
+    return false;
+}
+
+inline bool is_valid_point(const Move& move) {
+    return is_valid_point(move.x, move.y);
+    if (move.x >= 0 && move.x < FIELD_HEIGHT)
+        if (move.y >= 0 && move.y < FIELD_WIDTH)
             return true;
     return false;
 }

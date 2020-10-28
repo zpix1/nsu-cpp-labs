@@ -4,7 +4,6 @@
 #include <algorithm>
 #include <random>
 
-
 bool ship_dfs_is_alive(std::vector<std::vector<bool>>& used, const Battlefield& field, int x, int y) {
     if (used[x][y])
         return false;
@@ -23,6 +22,7 @@ bool ship_dfs_is_alive(std::vector<std::vector<bool>>& used, const Battlefield& 
     }
     return is_alive;
 }
+
 // Ship is alive if only at least one of its cells is alive
 bool is_ship_alive(const Battlefield& field, int x, int y) {
     std::vector<std::vector<bool>> used(FIELD_HEIGHT, std::vector<bool>(FIELD_WIDTH));
@@ -48,13 +48,15 @@ void ship_dfs_destroy(std::vector<std::vector<bool>>& used, Battlefield& field, 
         }
     }
 }
+
 // Ship is alive if only at least one of its cells is alive
 void ship_destroy(Battlefield& field, int x, int y, bool markn = false) {
     std::vector<std::vector<bool>> used(FIELD_HEIGHT, std::vector<bool>(FIELD_WIDTH));
     ship_dfs_destroy(used, field, x, y, markn);
 }
 
-void place_ships_randomly(Battlefield& my_field) {
+int place_ships_randomly(Battlefield& my_field) {
+    int ships_placed = 0;
     for (const auto& base_ship: SHIPS) {
         std::vector<Ship> ship_rotations{base_ship};
         if (base_ship.width != base_ship.height) {
@@ -102,6 +104,7 @@ void place_ships_randomly(Battlefield& my_field) {
                                 my_field[x_part_pos][y_part_pos] = BattlefieldCellState::Ship;
                             }
                         }
+                        ships_placed++;
 //                        std::cout << "Ship placed: " << x << ":"<< y << " with size " << ship.width << ":" << ship.height << std::endl;
                         goto NEWSHIP;
                     }
@@ -110,6 +113,7 @@ void place_ships_randomly(Battlefield& my_field) {
         }
         NEWSHIP:;
     }
+    return ships_placed;
 }
 
 MoveResult UtilityGamer::check_move(Move move) {
@@ -145,7 +149,7 @@ void RandomGamer::init(GameView&) {
         my_field.emplace_back(FIELD_WIDTH, BattlefieldCellState::Empty);
     }
 
-    place_ships_randomly(my_field);
+    ships_count = place_ships_randomly(my_field);
 }
 
 std::pair<Move, MoveResult> RandomGamer::make_move(InteractiveGameView&, AnotherGamer& callback_gamer) {
@@ -161,7 +165,7 @@ void ConsoleGamer::init(GameView& game_view) {
         opponent_field.emplace_back(FIELD_WIDTH, BattlefieldCellState::Unknown);
     }
 
-    place_ships_randomly(my_field);
+    ships_count = place_ships_randomly(my_field);
 }
 
 std::pair<Move, MoveResult> ConsoleGamer::make_move(InteractiveGameView& game_view, AnotherGamer& callback_gamer) {
@@ -189,7 +193,7 @@ std::pair<Move, MoveResult> ConsoleGamer::make_move(InteractiveGameView& game_vi
     return std::pair<Move, MoveResult>{move, result};
 }
 
-// Interactive gamer stuff
+// Strategy gamer stuff
 
 void StrategyGamer::init(GameView& game_view) {
     for (int i = 0; i < FIELD_HEIGHT; i++) {
@@ -197,11 +201,101 @@ void StrategyGamer::init(GameView& game_view) {
         opponent_field.emplace_back(FIELD_WIDTH, BattlefieldCellState::Unknown);
     }
 
-    place_ships_randomly(my_field);
+    ships_count = place_ships_randomly(my_field);
+
+    std::vector<int> other;
+    for (int field_id = 0; field_id < FIELD_WIDTH * FIELD_HEIGHT; field_id++) {
+        int x = field_id / FIELD_HEIGHT;
+        int y = field_id % FIELD_WIDTH;
+        if ((x + y) % 2 == 0) {
+
+            field_cell_order.push_back(field_id);
+        } else {
+            other.push_back(field_id);
+        }
+    }
+    field_cell_order.insert(field_cell_order.end(), other.begin(), other.end());
+
+//    for (auto e: field_cell_order) {
+//        std::cout << e << " ";
+//    }
+//    std::cout << std::endl;
+
+//    std::cout << field_cell_order.size() << std::endl;
 }
 
 std::pair<Move, MoveResult> StrategyGamer::make_move(InteractiveGameView& game_view, AnotherGamer& callback_gamer) {
-    const Move move = {rand() % FIELD_HEIGHT, rand() % FIELD_WIDTH};
-
-    return std::pair<Move, MoveResult>();
+    Move move;
+    MoveResult result;
+    if (state == State::Search) {
+        bool exited = false;
+        for (const int field_id : field_cell_order) {
+            move = {field_id / FIELD_HEIGHT, field_id % FIELD_WIDTH};
+            if (opponent_field[move.x][move.y] == BattlefieldCellState::Unknown) {
+                result = callback_gamer.check_move(move);
+                if (result == MoveResult::Missed) {
+                    opponent_field[move.x][move.y] = BattlefieldCellState::Empty;
+                } else if (result == MoveResult::Destroyed) {
+                    opponent_field[move.x][move.y] = BattlefieldCellState::Hit;
+                    ship_destroy(opponent_field, move.x, move.y, true);
+                } else if (result == MoveResult::Hit) {
+                    opponent_field[move.x][move.y] = BattlefieldCellState::Hit;
+                    state = State::IdentifyDirection;
+                    first_hit = move;
+                    current_hit = move;
+                }
+                exited = true;
+                break;
+            }
+        }
+        if (!exited) {
+            move = {0, 0};
+            result = callback_gamer.check_move(move);
+        }
+    } else if (state == State::IdentifyDirection) {
+        for (const auto& possible_direction: possible_directions) {
+            move = {first_hit.x + possible_direction.x, first_hit.y + possible_direction.y};
+            if (is_valid_point(move) && opponent_field[move.x][move.y] == BattlefieldCellState::Unknown) {
+                result = callback_gamer.check_move(move);
+                if (result == MoveResult::Hit) {
+                    opponent_field[move.x][move.y] = BattlefieldCellState::Hit;
+                    current_direction = possible_direction;
+                    current_hit = move;
+                    state = State::FinishOff;
+                } else if (result == MoveResult::Destroyed) {
+                    opponent_field[move.x][move.y] = BattlefieldCellState::Hit;
+                    ship_destroy(opponent_field, move.x, move.y, true);
+                    possible_directions = all_directions;
+                    state = State::Search;
+                } else if (result == MoveResult::Missed) {
+                    opponent_field[move.x][move.y] = BattlefieldCellState::Empty;
+                    possible_directions.erase(possible_direction);
+                }
+                break;
+            }
+        }
+    } else if (state == State::FinishOff) {
+        move = {current_hit.x + current_direction.x, current_hit.y + current_direction.y};
+        if (is_valid_point(move)) {
+            result = callback_gamer.check_move(move);
+            if (result == MoveResult::Missed) {
+                opponent_field[move.x][move.y] = BattlefieldCellState::Empty;
+                current_hit = first_hit;
+                current_direction = {current_direction.x * -1, current_direction.y * -1};
+            } else if (result == MoveResult::Hit) {
+                opponent_field[move.x][move.y] = BattlefieldCellState::Hit;
+                current_hit = move;
+            } else if (result == MoveResult::Destroyed) {
+                opponent_field[move.x][move.y] = BattlefieldCellState::Hit;
+                ship_destroy(opponent_field, move.x, move.y, true);
+                possible_directions = all_directions;
+                state = State::Search;
+            }
+        } else {
+            current_hit = first_hit;
+            current_direction = {current_direction.x * -1, current_direction.y * -1};
+            return make_move(game_view, callback_gamer);
+        }
+    }
+    return {move, result};
 }
