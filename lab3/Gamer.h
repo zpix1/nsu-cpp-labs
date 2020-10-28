@@ -46,3 +46,15 @@ public:
 
     std::pair<Move, MoveResult> make_move(InteractiveGameView& game_view, AnotherGamer& callback_gamer) override;
 };
+
+class StrategyGamer : public UtilityGamer {
+    Battlefield opponent_field;
+
+    bool hit_last_time = false;
+    Move last_hit_move;
+
+public:
+    void init(GameView& game_view) override;
+
+    std::pair<Move, MoveResult> make_move(InteractiveGameView& game_view, AnotherGamer& callback_gamer) override;
+};

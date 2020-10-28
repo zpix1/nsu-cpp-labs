@@ -23,8 +23,6 @@ int play_game() {
     a_gamer.init(game_view);
     b_gamer.init(game_view);
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "EndlessLoop"
     while (true) {
         // Gamer A move
         while (true) {
@@ -66,10 +64,9 @@ int play_game() {
 
         game_view.pause();
     }
-#pragma clang diagnostic pop
 }
 
 int main() {
-    int res = play_game();
+    play_game();
     return 0;
 }

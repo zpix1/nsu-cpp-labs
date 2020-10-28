@@ -1,6 +1,8 @@
 #include "Gamer.h"
 
 #include <iostream>
+#include <algorithm>
+#include <random>
 
 
 bool ship_dfs_is_alive(std::vector<std::vector<bool>>& used, const Battlefield& field, int x, int y) {
@@ -58,6 +60,10 @@ void place_ships_randomly(Battlefield& my_field) {
         if (base_ship.width != base_ship.height) {
             ship_rotations.push_back({base_ship.height, base_ship.width});
         }
+        std::random_device rd;
+        std::mt19937 g(rd());
+        std::shuffle(ship_rotations.begin(), ship_rotations.end(), std::mt19937(std::random_device()()));
+
         for (const auto& ship: ship_rotations) {
             for (int tryno = 0; tryno < 100; tryno++) {
                 int x = rand() % FIELD_HEIGHT;
@@ -181,4 +187,21 @@ std::pair<Move, MoveResult> ConsoleGamer::make_move(InteractiveGameView& game_vi
     game_view.clear();
 
     return std::pair<Move, MoveResult>{move, result};
+}
+
+// Interactive gamer stuff
+
+void StrategyGamer::init(GameView& game_view) {
+    for (int i = 0; i < FIELD_HEIGHT; i++) {
+        my_field.emplace_back(FIELD_WIDTH, BattlefieldCellState::Empty);
+        opponent_field.emplace_back(FIELD_WIDTH, BattlefieldCellState::Unknown);
+    }
+
+    place_ships_randomly(my_field);
+}
+
+std::pair<Move, MoveResult> StrategyGamer::make_move(InteractiveGameView& game_view, AnotherGamer& callback_gamer) {
+    const Move move = {rand() % FIELD_HEIGHT, rand() % FIELD_WIDTH};
+
+    return std::pair<Move, MoveResult>();
 }

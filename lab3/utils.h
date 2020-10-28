@@ -4,8 +4,8 @@
 #include <vector>
 #include <utility>
 
-const int FIELD_WIDTH = 4;
-const int FIELD_HEIGHT = 4;
+const int FIELD_WIDTH = 10;
+const int FIELD_HEIGHT = 10;
 
 enum class MoveResult {
     Missed, Hit, Destroyed
@@ -25,23 +25,19 @@ struct Ship {
 
 using Ships = std::vector<Ship>;
 
-//struct Battlefield {
-//    std::vector< std::vector <BattlefieldCellState> > data;
-//};
-
 using Battlefield = std::vector<std::vector<BattlefieldCellState> >;
 
 const Ships SHIPS = {
         {1, 4},
         {1, 3},
-//        {1, 3},
-//        {1, 2},
-//        {1, 2},
-//        {1, 2},
-//        {1, 1},
-//        {1, 1},
-//        {1, 1},
-//        {1, 1}
+        {1, 3},
+        {1, 2},
+        {1, 2},
+        {1, 2},
+        {1, 1},
+        {1, 1},
+        {1, 1},
+        {1, 1}
 };
 
 const std::vector<std::pair<int, int>> DIRECTIONS = {
