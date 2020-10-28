@@ -8,6 +8,7 @@ bool ship_dfs_is_alive(std::vector<std::vector<bool>>& used, const Battlefield& 
     if (used[x][y])
         return false;
     used[x][y] = true;
+
     if (field[x][y] == BattlefieldCellState::Ship)
         return true;
     if (field[x][y] != BattlefieldCellState::Hit)
@@ -29,7 +30,7 @@ bool is_ship_alive(const Battlefield& field, int x, int y) {
     return ship_dfs_is_alive(used, field, x, y);
 }
 
-void ship_dfs_destroy(std::vector<std::vector<bool>>& used, Battlefield& field, int x, int y, bool markn) {
+void ship_dfs_destroy(std::vector<std::vector<bool>>& used, Battlefield& field, int x, int y, bool mark_locked) {
     if (used[x][y])
         return;
     used[x][y] = true;
@@ -44,15 +45,15 @@ void ship_dfs_destroy(std::vector<std::vector<bool>>& used, Battlefield& field, 
         int x_check = x + x_neighbour;
         int y_check = y + y_neighbour;
         if (is_valid_point(x_check, y_check)) {
-            ship_dfs_destroy(used, field, x_check, y_check, markn);
+            ship_dfs_destroy(used, field, x_check, y_check, mark_locked);
         }
     }
 }
 
 // Ship is alive if only at least one of its cells is alive
-void ship_destroy(Battlefield& field, int x, int y, bool markn = false) {
+void ship_destroy(Battlefield& field, int x, int y, bool mark_locked = false) {
     std::vector<std::vector<bool>> used(FIELD_HEIGHT, std::vector<bool>(FIELD_WIDTH));
-    ship_dfs_destroy(used, field, x, y, markn);
+    ship_dfs_destroy(used, field, x, y, mark_locked);
 }
 
 int place_ships_randomly(Battlefield& my_field) {
@@ -62,14 +63,12 @@ int place_ships_randomly(Battlefield& my_field) {
         if (base_ship.width != base_ship.height) {
             ship_rotations.push_back({base_ship.height, base_ship.width});
         }
-        std::random_device rd;
-        std::mt19937 g(rd());
         std::shuffle(ship_rotations.begin(), ship_rotations.end(), std::mt19937(std::random_device()()));
 
         for (const auto& ship: ship_rotations) {
-            for (int tryno = 0; tryno < 100; tryno++) {
-                int x = rand() % FIELD_HEIGHT;
-                int y = rand() % FIELD_WIDTH;
+            for (int try_n = 0; try_n < 100; try_n++) {
+                int x = randint() % FIELD_HEIGHT;
+                int y = randint() % FIELD_WIDTH;
                 for (const auto[direction_x, direction_y]: DIRECTIONS) {
                     bool can_place = true;
                     for (int x_part_pos = x;
@@ -85,17 +84,17 @@ int place_ships_randomly(Battlefield& my_field) {
                                     if (is_valid_point(x_check, y_check)) {
                                         if (my_field[x_check][y_check] != BattlefieldCellState::Empty) {
                                             can_place = false;
-                                            goto XYPARTEND;
+                                            goto FOUND_PLACE;
                                         }
                                     }
                                 }
                             } else {
                                 can_place = false;
-                                goto XYPARTEND;
+                                goto FOUND_PLACE;
                             }
                         }
                     }
-                    XYPARTEND:;
+                    FOUND_PLACE:;
                     if (can_place) {
                         for (int x_part_pos = x;
                              x_part_pos != x + direction_x * (ship.width); x_part_pos += direction_x) {
@@ -105,13 +104,12 @@ int place_ships_randomly(Battlefield& my_field) {
                             }
                         }
                         ships_placed++;
-//                        std::cout << "Ship placed: " << x << ":"<< y << " with size " << ship.width << ":" << ship.height << std::endl;
-                        goto NEWSHIP;
+                        goto NEW_SHIP;
                     }
                 }
             }
         }
-        NEWSHIP:;
+        NEW_SHIP:;
     }
     return ships_placed;
 }
@@ -153,7 +151,7 @@ void RandomGamer::init(GameView&) {
 }
 
 std::pair<Move, MoveResult> RandomGamer::make_move(InteractiveGameView&, AnotherGamer& callback_gamer) {
-    const Move move = {rand() % FIELD_HEIGHT, rand() % FIELD_WIDTH};
+    const Move move = {static_cast<int>(randint() % FIELD_HEIGHT), static_cast<int>(randint() % FIELD_WIDTH)};
     return std::pair<Move, MoveResult>{move, callback_gamer.check_move(move)};
 }
 
@@ -175,7 +173,7 @@ std::pair<Move, MoveResult> ConsoleGamer::make_move(InteractiveGameView& game_vi
     game_view.log("Opponent's field:");
     game_view.render_field(opponent_field);
 
-    auto move = game_view.ask_for_move("");
+    auto move = game_view.ask_for_move();
 
     auto result = callback_gamer.check_move(move);
 
@@ -208,24 +206,16 @@ void StrategyGamer::init(GameView& game_view) {
         int x = field_id / FIELD_HEIGHT;
         int y = field_id % FIELD_WIDTH;
         if ((x + y) % 2 == 0) {
-
             field_cell_order.push_back(field_id);
         } else {
             other.push_back(field_id);
         }
     }
     field_cell_order.insert(field_cell_order.end(), other.begin(), other.end());
-
-//    for (auto e: field_cell_order) {
-//        std::cout << e << " ";
-//    }
-//    std::cout << std::endl;
-
-//    std::cout << field_cell_order.size() << std::endl;
 }
 
 std::pair<Move, MoveResult> StrategyGamer::make_move(InteractiveGameView& game_view, AnotherGamer& callback_gamer) {
-    Move move;
+    Move move{};
     MoveResult result;
     if (state == State::Search) {
         bool exited = false;

@@ -17,11 +17,7 @@ void ConsoleGameView::render_field(const Battlefield& field) {
     }
 }
 
-Battlefield ConsoleGameView::ask_for_ships_placement() {
-    return Battlefield();
-}
-
-Move ConsoleGameView::ask_for_move(const std::string& invite) {
+Move ConsoleGameView::ask_for_move() {
     log("Please enter x, y:");
     int x, y;
     while (true) {

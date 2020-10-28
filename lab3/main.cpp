@@ -15,7 +15,7 @@ std::string move_result_to_string(MoveResult result) {
 }
 
 int play_game() {
-    RandomGamer a_gamer;
+    ConsoleGamer a_gamer;
     StrategyGamer b_gamer;
 
     ConsoleGameView game_view;
@@ -27,9 +27,6 @@ int play_game() {
         // Gamer A move
         while (true) {
             auto[a_move, a_move_result] = a_gamer.make_move(game_view, b_gamer);
-
-//            game_view.log("Gamer A selected cell " + std::to_string(a_move.x) + ":" + std::to_string(a_move.y));
-//            game_view.log("Result: " + move_result_to_string(a_move_result));
 
             if (b_gamer.lost()) {
                 game_view.log("Gamer A won; Game ended;");
