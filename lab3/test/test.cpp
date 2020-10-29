@@ -1,35 +1,56 @@
 #define CATCH_CONFIG_MAIN
 
 #include "../thirdparty/catch.hpp"
+#include "../thirdparty/fakeit.hpp"
 
 #include "../Gamer.h"
 #include "../GameView.h"
+
+using namespace fakeit;
 
 auto E = BattlefieldCellState::Empty;
 auto S = BattlefieldCellState::Ship;
 
 TEST_CASE("StrategyGamer", "[gamer]") {
-    SECTION("it destroys ships") {
+    SECTION("it can win") {
+        Mock<ConsoleGameView> mock;
+
         StrategyGamer smart;
-        RandomGamer dumb;
+        RandomGamer dummy;
         const Battlefield fieldA = {
                 {E, E, E, E, E, E, E, E, E, E},
                 {E, E, E, E, E, E, E, E, E, E},
-                {E, E, E, E, E, E, E, E, E, E},
+                {E, E, E, E, E, S, S, S, E, E},
                 {E, E, E, E, E, E, E, E, E, E},
                 {S, S, S, S, E, E, E, E, E, E},
                 {E, E, E, E, E, E, E, E, E, E},
                 {E, E, E, E, E, E, E, E, E, E},
-                {E, E, E, E, E, E, E, E, E, E},
-                {E, E, E, E, E, E, E, E, E, E},
-                {E, E, E, E, E, E, E, E, E, E},
+                {E, E, E, E, E, E, E, E, S, E},
+                {E, E, E, E, E, E, E, E, S, E},
+                {E, E, E, E, E, E, E, E, S, E},
         };
-        smart.opponent_field = fieldA;
-        dumb.my_field = fieldA;
-        for (int i = 0; i < 100; i++) {
-            // TODO: Add mocking
 
-            // smart.make_move(EmptyGameView(), dumb);
+        smart.init(mock.get(), std::make_pair(0, Battlefield{}));
+        smart.prepare();
+
+        dummy.init(mock.get(), std::make_pair(3, fieldA));
+        dummy.prepare();
+
+        REQUIRE(dummy.lost() == false);
+
+        int i = 0;
+        while (i < 40) {
+            auto [move, result] = smart.make_move(mock.get(), dummy);
+            if (result != MoveResult::Missed) {
+                i--;
+            }
+            i++;
+
+            if (dummy.lost()) {
+                break;
+            }
         }
+
+        REQUIRE(dummy.lost() == true);
     }
 }
