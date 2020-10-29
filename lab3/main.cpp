@@ -28,9 +28,6 @@ int main(int argc, char** argv) {
 
     CLI11_PARSE(app, argc, argv);
 
-//    std::unique_ptr<UtilityGamer> a_gamer;
-//    std::unique_ptr<UtilityGamer> b_gamer;
-
     GamingSession s;
     ConsoleGameView gv;
 

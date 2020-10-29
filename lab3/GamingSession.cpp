@@ -17,8 +17,6 @@ std::string move_result_to_string(MoveResult result) {
 
 void GamingSession::play_game(InteractiveGameView& game_view, std::unique_ptr<UtilityGamer> a_gamer,
                               std::unique_ptr<UtilityGamer> b_gamer) {
-//    std::unique_ptr<UtilityGamer> a_gamer = std::make_unique<ConsoleGamer>();
-//    std::unique_ptr<UtilityGamer> b_gamer = std::make_unique<RandomGamer>();
 
     a_gamer->init(game_view, place_ships_randomly());
     b_gamer->init(game_view, place_ships_randomly());
