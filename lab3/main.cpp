@@ -1,12 +1,44 @@
 #include <memory>
 #include "GamingSession.h"
-#include "GameView.h"
+#include "thirdparty/CLI11.hpp"
 
-int main() {
+std::unique_ptr<UtilityGamer> get_gamer_by_str(const std::string& type) {
+    if (type == "console") {
+        return std::make_unique<ConsoleGamer>();
+    }
+    if (type == "strategy") {
+        return std::make_unique<StrategyGamer>();
+    }
+    if (type == "random") {
+        return std::make_unique<RandomGamer>();
+    }
+    return std::make_unique<RandomGamer>();
+}
+
+int main(int argc, char** argv) {
+    CLI::App app{"Battleship The Game", "battleship"};
+
+    int games_count = 1;
+    app.add_option("-n", games_count, "Number of games to be played");
+
+    std::string a_name = "console";
+    app.add_set("-f, --first", a_name, {"console", "random", "strategy"}, "First gamer");
+    std::string b_name = "strategy";
+    app.add_set("-s, --second", b_name, {"console", "random", "strategy"}, "Second gamer");
+
+    CLI11_PARSE(app, argc, argv);
+
+//    std::unique_ptr<UtilityGamer> a_gamer;
+//    std::unique_ptr<UtilityGamer> b_gamer;
+
     GamingSession s;
     ConsoleGameView gv;
-    s.play_game(gv, std::make_unique<ConsoleGamer>(), std::make_unique<StrategyGamer>());
+
+    for (int i = 0; i < games_count; i++) {
+        s.play_game(gv, get_gamer_by_str(a_name), get_gamer_by_str(b_name));
+    }
     s.print_stats(gv);
     gv.pause();
+
     return 0;
 }
