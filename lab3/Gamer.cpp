@@ -187,9 +187,7 @@ std::pair<Move, MoveResult> ConsoleGamer::make_move(InteractiveGameView& game_vi
         ship_destroy(opponent_field, move.x, move.y, true);
     }
 
-    game_view.clear();
-
-    return std::pair<Move, MoveResult>{move, result};
+    return std::make_pair(move, result);
 }
 
 // Strategy gamer stuff

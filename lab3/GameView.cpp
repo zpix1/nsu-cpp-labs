@@ -45,7 +45,6 @@ void ConsoleGameView::clear() {
 }
 
 void ConsoleGameView::pause() {
-    char c;
-    std::cin >> c;
+    system("pause");
 }
 

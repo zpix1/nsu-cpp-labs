@@ -17,7 +17,7 @@ public:
 
     [[nodiscard]] virtual bool lost() const = 0;
 
-    virtual void init(GameView& game_view, const std::pair<int, Battlefield> ships_count_with_field) = 0;
+    virtual void init(GameView& game_view, std::pair<int, Battlefield> ships_count_with_field) = 0;
 
     virtual void prepare() = 0;
 };
