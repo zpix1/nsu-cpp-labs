@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <random>
 
-bool ship_dfs_is_alive(std::vector<std::vector<bool>>& used, const Battlefield& field, int x, int y) {
+static bool ship_dfs_is_alive(std::vector<std::vector<bool>>& used, const Battlefield& field, int x, int y) {
     if (used[x][y])
         return false;
     used[x][y] = true;
@@ -25,12 +25,12 @@ bool ship_dfs_is_alive(std::vector<std::vector<bool>>& used, const Battlefield& 
 }
 
 // Ship is alive if only at least one of its cells is alive
-bool is_ship_alive(const Battlefield& field, int x, int y) {
+static bool is_ship_alive(const Battlefield& field, int x, int y) {
     std::vector<std::vector<bool>> used(FIELD_HEIGHT, std::vector<bool>(FIELD_WIDTH));
     return ship_dfs_is_alive(used, field, x, y);
 }
 
-void ship_dfs_destroy(std::vector<std::vector<bool>>& used, Battlefield& field, int x, int y, bool mark_locked) {
+static void ship_dfs_destroy(std::vector<std::vector<bool>>& used, Battlefield& field, int x, int y, bool mark_locked) {
     if (used[x][y])
         return;
     used[x][y] = true;
@@ -51,12 +51,17 @@ void ship_dfs_destroy(std::vector<std::vector<bool>>& used, Battlefield& field, 
 }
 
 // Ship is alive if only at least one of its cells is alive
-void ship_destroy(Battlefield& field, int x, int y, bool mark_locked = false) {
+static void ship_destroy(Battlefield& field, int x, int y, bool mark_locked = false) {
     std::vector<std::vector<bool>> used(FIELD_HEIGHT, std::vector<bool>(FIELD_WIDTH));
     ship_dfs_destroy(used, field, x, y, mark_locked);
 }
 
-int place_ships_randomly(Battlefield& my_field) {
+std::pair<int, Battlefield> place_ships_randomly() {
+    Battlefield my_field;
+    for (int i = 0; i < FIELD_HEIGHT; i++) {
+        my_field.emplace_back(FIELD_WIDTH, BattlefieldCellState::Empty);
+    }
+
     int ships_placed = 0;
     for (const auto& base_ship: SHIPS) {
         std::vector<Ship> ship_rotations{base_ship};
@@ -111,8 +116,10 @@ int place_ships_randomly(Battlefield& my_field) {
         }
         NEW_SHIP:;
     }
-    return ships_placed;
+    return std::make_pair(ships_placed, my_field);
 }
+
+// Utility gamer stuff
 
 MoveResult UtilityGamer::check_move(Move move) {
     int x = move.x;
@@ -140,15 +147,12 @@ bool UtilityGamer::lost() const {
     return ships_count == 0;
 }
 
-// Random gamer stuff
-
-void RandomGamer::init(GameView&) {
-    for (int i = 0; i < FIELD_HEIGHT; i++) {
-        my_field.emplace_back(FIELD_WIDTH, BattlefieldCellState::Empty);
-    }
-
-    ships_count = place_ships_randomly(my_field);
+void UtilityGamer::init(GameView& game_view, const std::pair<int, Battlefield> ships_count_with_field) {
+    ships_count = ships_count_with_field.first;
+    my_field = ships_count_with_field.second;
 }
+
+// Random gamer stuff
 
 std::pair<Move, MoveResult> RandomGamer::make_move(InteractiveGameView&, AnotherGamer& callback_gamer) {
     const Move move = {static_cast<int>(randint() % FIELD_HEIGHT), static_cast<int>(randint() % FIELD_WIDTH)};
@@ -157,13 +161,10 @@ std::pair<Move, MoveResult> RandomGamer::make_move(InteractiveGameView&, Another
 
 // Console gamer stuff
 
-void ConsoleGamer::init(GameView& game_view) {
+void ConsoleGamer::prepare() {
     for (int i = 0; i < FIELD_HEIGHT; i++) {
-        my_field.emplace_back(FIELD_WIDTH, BattlefieldCellState::Empty);
         opponent_field.emplace_back(FIELD_WIDTH, BattlefieldCellState::Unknown);
     }
-
-    ships_count = place_ships_randomly(my_field);
 }
 
 std::pair<Move, MoveResult> ConsoleGamer::make_move(InteractiveGameView& game_view, AnotherGamer& callback_gamer) {
@@ -193,13 +194,10 @@ std::pair<Move, MoveResult> ConsoleGamer::make_move(InteractiveGameView& game_vi
 
 // Strategy gamer stuff
 
-void StrategyGamer::init(GameView& game_view) {
+void StrategyGamer::prepare() {
     for (int i = 0; i < FIELD_HEIGHT; i++) {
-        my_field.emplace_back(FIELD_WIDTH, BattlefieldCellState::Empty);
         opponent_field.emplace_back(FIELD_WIDTH, BattlefieldCellState::Unknown);
     }
-
-    ships_count = place_ships_randomly(my_field);
 
     std::vector<int> other;
     for (int field_id = 0; field_id < FIELD_WIDTH * FIELD_HEIGHT; field_id++) {

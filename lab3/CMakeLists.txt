@@ -12,7 +12,7 @@ add_executable(game
         Gamer.cpp
         main.cpp utils.h GameView.cpp)
 
-enable_testing()
+#enable_testing()
 add_executable(tests test/test.cpp)
 target_link_libraries(tests lab3)
 add_test(tests tests)

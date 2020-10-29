@@ -7,6 +7,8 @@
 #include "utils.h"
 #include "GameView.h"
 
+std::pair<int, Battlefield> place_ships_randomly();
+
 class AnotherGamer;
 
 class Gamer {
@@ -15,30 +17,34 @@ public:
 
     [[nodiscard]] virtual bool lost() const = 0;
 
-    virtual void init(GameView& game_view) = 0;
+    virtual void init(GameView& game_view, const std::pair<int, Battlefield> ships_count_with_field) = 0;
+
+    virtual void prepare() = 0;
 };
 
-class AnotherGamer: Gamer {
+class AnotherGamer : Gamer {
 public:
     virtual MoveResult check_move(Move move) = 0;
 };
 
 
 class UtilityGamer : public AnotherGamer {
-public:
+protected:
     int ships_count = 0;
     Battlefield my_field;
 
+public:
     MoveResult check_move(Move move) override;
 
     [[nodiscard]] bool lost() const override;
+
+    void init(GameView& game_view, std::pair<int, Battlefield> ships_count_with_field) override;
 };
 
 class RandomGamer : public UtilityGamer {
 
 public:
-
-    void init(GameView& game_view) override;
+    void prepare() override {};
 
     std::pair<Move, MoveResult> make_move(InteractiveGameView& game_view, AnotherGamer& callback_gamer) override;
 };
@@ -47,7 +53,7 @@ class ConsoleGamer : public UtilityGamer {
     Battlefield opponent_field;
 
 public:
-    void init(GameView& game_view) override;
+    void prepare() override;
 
     std::pair<Move, MoveResult> make_move(InteractiveGameView& game_view, AnotherGamer& callback_gamer) override;
 };
@@ -68,9 +74,9 @@ class StrategyGamer : public UtilityGamer {
     Move current_hit;
 
     const std::unordered_set<Direction> all_directions = {
-            {0, 1},
-            {0, -1},
-            {1, 0},
+            {0,  1},
+            {0,  -1},
+            {1,  0},
             {-1, 0}
     };
 
@@ -78,9 +84,9 @@ class StrategyGamer : public UtilityGamer {
 
     Direction current_direction;
 
-public:
     Battlefield opponent_field;
-    void init(GameView& game_view) override;
+public:
+    void prepare() override;
 
     std::pair<Move, MoveResult> make_move(InteractiveGameView& game_view, AnotherGamer& callback_gamer) override;
 };

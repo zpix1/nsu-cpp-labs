@@ -20,8 +20,11 @@ int play_game() {
 
     ConsoleGameView game_view;
 
-    a_gamer.init(game_view);
-    b_gamer.init(game_view);
+    a_gamer.init(game_view, place_ships_randomly());
+    b_gamer.init(game_view, place_ships_randomly());
+
+    a_gamer.prepare();
+    b_gamer.prepare();
 
     while (true) {
         // Gamer A move
@@ -47,7 +50,7 @@ int play_game() {
 
             game_view.log("Gamer B selected cell " + std::to_string(b_move.x) + ":" + std::to_string(b_move.y));
             game_view.log("Result: " + move_result_to_string(b_move_result));
-            game_view.render_field(b_gamer.opponent_field);
+
             if (a_gamer.lost()) {
                 game_view.log("Gamer B won; Game ended;");
                 game_view.log("Thanks for playing!");

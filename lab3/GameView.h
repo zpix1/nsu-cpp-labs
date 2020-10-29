@@ -11,9 +11,6 @@ public:
     virtual void log(const std::string& message) = 0;
 };
 
-class EmptyGameView : GameView {
-};
-
 class InteractiveGameView : public GameView {
 public:
     virtual void clear() = 0;
