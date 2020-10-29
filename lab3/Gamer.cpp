@@ -165,7 +165,10 @@ void ConsoleGamer::prepare(InteractiveGameView& game_view) {
     for (int i = 0; i < FIELD_HEIGHT; i++) {
         opponent_field.emplace_back(FIELD_WIDTH, BattlefieldCellState::Unknown);
     }
-    ships_count = game_view.confirm_ship_placement(my_field);
+    auto [result, new_ships_count] = game_view.confirm_ship_placement(my_field);
+    if (result) {
+        ships_count = new_ships_count;
+    }
 }
 
 std::pair<Move, MoveResult> ConsoleGamer::make_move(InteractiveGameView& game_view, AnotherGamer& callback_gamer) {

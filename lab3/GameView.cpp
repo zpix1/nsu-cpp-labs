@@ -124,7 +124,7 @@ static bool try_place_ship(Battlefield& field, Ship ship, int x, int y, Directio
     return can_place;
 }
 
-int ConsoleGameView::confirm_ship_placement(Battlefield& field) {
+std::pair<bool, int> ConsoleGameView::confirm_ship_placement(Battlefield& field) {
     std::cout << "Ships were placed randomly: " << std::endl;
     render_field(field);
     std::cout << "Do you want to place ships manually? (Y/N): ";
@@ -132,7 +132,7 @@ int ConsoleGameView::confirm_ship_placement(Battlefield& field) {
     char result;
     std::cin >> result;
     if (result != 'Y')
-        return false;
+        return {false, 0};
 
     for (int i = 0; i < FIELD_HEIGHT; i++) {
         for (int j = 0; j < FIELD_HEIGHT; j++) {
@@ -204,7 +204,7 @@ int ConsoleGameView::confirm_ship_placement(Battlefield& field) {
         }
     }
 
-    return SHIPS.size() - available_ships.size();
+    return {true, SHIPS.size() - available_ships.size()};
 }
 
 

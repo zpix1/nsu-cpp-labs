@@ -96,5 +96,9 @@ inline bool is_valid_point(const Move& move) {
 inline int randint() {
     static std::random_device rd;
     static std::mt19937 mersenne(rd());
-    return mersenne();
+    int result;
+    while ((result = mersenne()) < 0) {
+        ;
+    }
+    return result;
 }

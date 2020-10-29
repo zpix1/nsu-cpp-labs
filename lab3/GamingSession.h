@@ -14,6 +14,7 @@ class GamingSession {
     int gamer_b_won = 0;
 
 public:
-    void play_game(InteractiveGameView& game_view, GamerType a_type, GamerType b_type);
+    void play_game(InteractiveGameView& game_view, std::unique_ptr<UtilityGamer> a_gamer,
+                   std::unique_ptr<UtilityGamer> b_gamer);
     void print_stats(GameView& game_view) const;
 };

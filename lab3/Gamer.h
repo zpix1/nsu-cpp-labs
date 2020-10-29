@@ -22,7 +22,7 @@ public:
     virtual void prepare(InteractiveGameView& game_view) = 0;
 };
 
-class AnotherGamer : Gamer {
+class AnotherGamer : public Gamer {
 public:
     virtual MoveResult check_move(Move move) = 0;
 };
