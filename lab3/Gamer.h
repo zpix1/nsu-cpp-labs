@@ -19,7 +19,7 @@ public:
 
     virtual void init(GameView& game_view, std::pair<int, Battlefield> ships_count_with_field) = 0;
 
-    virtual void prepare() = 0;
+    virtual void prepare(InteractiveGameView& game_view) = 0;
 };
 
 class AnotherGamer : Gamer {
@@ -44,7 +44,7 @@ public:
 class RandomGamer : public UtilityGamer {
 
 public:
-    void prepare() override {};
+    void prepare(InteractiveGameView& game_view) override {};
 
     std::pair<Move, MoveResult> make_move(InteractiveGameView& game_view, AnotherGamer& callback_gamer) override;
 };
@@ -53,7 +53,7 @@ class ConsoleGamer : public UtilityGamer {
     Battlefield opponent_field;
 
 public:
-    void prepare() override;
+    void prepare(InteractiveGameView& game_view) override;
 
     std::pair<Move, MoveResult> make_move(InteractiveGameView& game_view, AnotherGamer& callback_gamer) override;
 };
@@ -86,7 +86,7 @@ class StrategyGamer : public UtilityGamer {
 
     Battlefield opponent_field;
 public:
-    void prepare() override;
+    void prepare(InteractiveGameView& game_view) override;
 
     std::pair<Move, MoveResult> make_move(InteractiveGameView& game_view, AnotherGamer& callback_gamer) override;
 };

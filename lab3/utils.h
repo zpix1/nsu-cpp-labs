@@ -4,6 +4,8 @@
 #include <vector>
 #include <utility>
 #include <random>
+#include <unordered_set>
+
 
 const int FIELD_WIDTH = 10;
 const int FIELD_HEIGHT = 10;
@@ -16,34 +18,28 @@ enum class BattlefieldCellState {
     Empty, Unknown, Locked, Hit, Destroyed, Ship
 };
 
-struct Move {
-    int x, y;
-};
-
-struct Ship {
-    int width, height;
-};
-
-using Ships = std::vector<Ship>;
-
-using Battlefield = std::vector<std::vector<BattlefieldCellState> >;
-
-struct Direction {
+struct Point {
     int x, y;
 
-    bool operator==(const Direction& b) const {
+    bool operator==(const Point& b) const {
         return x == b.x && y == b.y;
     }
 };
 
 namespace std {
     template<>
-    struct hash<Direction> {
-        size_t operator()(const Direction& obj) const {
+    struct hash<Point> {
+        size_t operator()(const Point& obj) const {
             return hash<int>()(obj.x + obj.y * FIELD_HEIGHT);
         }
     };
 }
+using Move = Point;
+using Ship = Point;
+using Direction = Point;
+
+using Battlefield = std::vector<std::vector<BattlefieldCellState> >;
+using Ships = std::vector<Ship>;
 
 const Ships SHIPS = {
         {1, 4},
@@ -82,7 +78,7 @@ const std::unordered_map<BattlefieldCellState, char> STATE2CHAR{
         {BattlefieldCellState::Unknown,   '?'},
         {BattlefieldCellState::Destroyed, 'D'},
         {BattlefieldCellState::Hit,       'H'},
-        {BattlefieldCellState::Locked,    ' '}
+        {BattlefieldCellState::Locked,    '_'}
 };
 
 

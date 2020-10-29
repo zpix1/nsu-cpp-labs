@@ -15,6 +15,7 @@ class InteractiveGameView : public GameView {
 public:
     virtual void clear() = 0;
     virtual Move ask_for_move() = 0;
+    virtual int confirm_ship_placement(Battlefield& field) = 0;
     virtual void pause() = 0;
 };
 
@@ -23,7 +24,7 @@ public:
     void render_field(const Battlefield& field) override;
 
     Move ask_for_move() override;
-
+    int confirm_ship_placement(Battlefield& field) override;
     void log(const std::string& message) override;
 
     void clear() override;

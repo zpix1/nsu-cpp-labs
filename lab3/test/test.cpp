@@ -31,10 +31,10 @@ TEST_CASE("StrategyGamer", "[gamer]") {
         };
 
         smart.init(mock.get(), std::make_pair(0, Battlefield{}));
-        smart.prepare();
+        smart.prepare(<#initializer#>);
 
         dummy.init(mock.get(), std::make_pair(3, fieldA));
-        dummy.prepare();
+        dummy.prepare(<#initializer#>);
 
         REQUIRE(dummy.lost() == false);
 

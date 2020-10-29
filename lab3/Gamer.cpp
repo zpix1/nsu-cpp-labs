@@ -65,8 +65,8 @@ std::pair<int, Battlefield> place_ships_randomly() {
     int ships_placed = 0;
     for (const auto& base_ship: SHIPS) {
         std::vector<Ship> ship_rotations{base_ship};
-        if (base_ship.width != base_ship.height) {
-            ship_rotations.push_back({base_ship.height, base_ship.width});
+        if (base_ship.x != base_ship.y) {
+            ship_rotations.push_back({base_ship.y, base_ship.x});
         }
         std::shuffle(ship_rotations.begin(), ship_rotations.end(), std::mt19937(std::random_device()()));
 
@@ -77,9 +77,9 @@ std::pair<int, Battlefield> place_ships_randomly() {
                 for (const auto[direction_x, direction_y]: DIRECTIONS) {
                     bool can_place = true;
                     for (int x_part_pos = x;
-                         x_part_pos != x + direction_x * ship.width; x_part_pos += direction_x) {
+                         x_part_pos != x + direction_x * ship.x; x_part_pos += direction_x) {
                         for (int y_part_pos = y;
-                             y_part_pos != y + direction_y * ship.height; y_part_pos += direction_y) {
+                             y_part_pos != y + direction_y * ship.y; y_part_pos += direction_y) {
                             if (is_valid_point(x_part_pos, y_part_pos) &&
                                 my_field[x_part_pos][y_part_pos] == BattlefieldCellState::Empty) {
                                 for (const auto[x_neighbour, y_neighbour]: NEIGHBOURS) {
@@ -89,22 +89,22 @@ std::pair<int, Battlefield> place_ships_randomly() {
                                     if (is_valid_point(x_check, y_check)) {
                                         if (my_field[x_check][y_check] != BattlefieldCellState::Empty) {
                                             can_place = false;
-                                            goto FOUND_PLACE;
+                                            goto RESULT_FOUND;
                                         }
                                     }
                                 }
                             } else {
                                 can_place = false;
-                                goto FOUND_PLACE;
+                                goto RESULT_FOUND;
                             }
                         }
                     }
-                    FOUND_PLACE:;
+                    RESULT_FOUND:;
                     if (can_place) {
                         for (int x_part_pos = x;
-                             x_part_pos != x + direction_x * (ship.width); x_part_pos += direction_x) {
+                             x_part_pos != x + direction_x * (ship.x); x_part_pos += direction_x) {
                             for (int y_part_pos = y;
-                                 y_part_pos != y + direction_y * (ship.height); y_part_pos += direction_y) {
+                                 y_part_pos != y + direction_y * (ship.y); y_part_pos += direction_y) {
                                 my_field[x_part_pos][y_part_pos] = BattlefieldCellState::Ship;
                             }
                         }
@@ -161,10 +161,11 @@ std::pair<Move, MoveResult> RandomGamer::make_move(InteractiveGameView&, Another
 
 // Console gamer stuff
 
-void ConsoleGamer::prepare() {
+void ConsoleGamer::prepare(InteractiveGameView& game_view) {
     for (int i = 0; i < FIELD_HEIGHT; i++) {
         opponent_field.emplace_back(FIELD_WIDTH, BattlefieldCellState::Unknown);
     }
+    ships_count = game_view.confirm_ship_placement(my_field);
 }
 
 std::pair<Move, MoveResult> ConsoleGamer::make_move(InteractiveGameView& game_view, AnotherGamer& callback_gamer) {
@@ -192,7 +193,7 @@ std::pair<Move, MoveResult> ConsoleGamer::make_move(InteractiveGameView& game_vi
 
 // Strategy gamer stuff
 
-void StrategyGamer::prepare() {
+void StrategyGamer::prepare(InteractiveGameView&) {
     for (int i = 0; i < FIELD_HEIGHT; i++) {
         opponent_field.emplace_back(FIELD_WIDTH, BattlefieldCellState::Unknown);
     }

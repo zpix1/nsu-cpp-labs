@@ -22,8 +22,8 @@ void GamingSession::play_game(InteractiveGameView& game_view, GamerType a_type, 
     a_gamer.init(game_view, place_ships_randomly());
     b_gamer.init(game_view, place_ships_randomly());
 
-    a_gamer.prepare();
-    b_gamer.prepare();
+    a_gamer.prepare(game_view);
+    b_gamer.prepare(game_view);
 
     while (true) {
         // Gamer A move
@@ -75,7 +75,7 @@ void GamingSession::play_game(InteractiveGameView& game_view, GamerType a_type, 
 void GamingSession::print_stats(GameView& game_view) const {
     game_view.log("Games played: " + std::to_string(games_played));
     game_view.log(
-            "A " + std::to_string(gamer_a_won) + " times, winrate: " + std::to_string(gamer_a_won * 1.0 / games_played));
+            "A won" + std::to_string(gamer_a_won) + " times, winrate: " + std::to_string(gamer_a_won * 1.0 / games_played));
     game_view.log(
-            "B " + std::to_string(gamer_b_won) + " times, winrate: " + std::to_string(gamer_b_won * 1.0 / games_played));
+            "B won" + std::to_string(gamer_b_won) + " times, winrate: " + std::to_string(gamer_b_won * 1.0 / games_played));
 }

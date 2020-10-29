@@ -6,5 +6,6 @@ int main() {
     ConsoleGameView gv;
     s.play_game(gv, GamerType::RandomGamerType, GamerType::RandomGamerType);
     s.print_stats(gv);
+    gv.pause();
     return 0;
 }
