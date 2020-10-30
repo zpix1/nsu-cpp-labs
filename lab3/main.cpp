@@ -29,12 +29,12 @@ int main(int argc, char **argv) {
 
     auto a_gamer_type = GamerType::ConsoleGamerType;
     app.add_option("-f, --first", a_gamer_type, "First gamer")->transform(
-            CLI::CheckedTransformer(name_to_type, CLI::ignore_case));;
+            CLI::CheckedTransformer(name_to_type, CLI::ignore_case));
     auto b_gamer_type = GamerType::StrategyGamerType;
     app.add_option("-s, --second", b_gamer_type, "Second gamer")->transform(
-            CLI::CheckedTransformer(name_to_type, CLI::ignore_case));;
+            CLI::CheckedTransformer(name_to_type, CLI::ignore_case));
 
-    CLI11_PARSE(app, argc, argv);
+    CLI11_PARSE(app, argc, argv)
 
     GamingSession s;
     ConsoleGameView gv;

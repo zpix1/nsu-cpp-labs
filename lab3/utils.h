@@ -8,6 +8,7 @@
 #include <unordered_set>
 #include <functional>
 
+#define DEBUG(x) do { std::cerr << #x << " = " << x << std::endl; } while (0)
 
 const int FIELD_WIDTH = 10;
 const int FIELD_HEIGHT = 10;
@@ -107,16 +108,18 @@ static inline void
 ship_dfs_set(std::vector<std::vector<bool>>& used, Battlefield& field, int x, int y, BattlefieldCellState go_on_from,
              BattlefieldCellState go_on_to, BattlefieldCellState neigh_from, BattlefieldCellState neigh_to,
              const std::function<void(BattlefieldCellState)>& process_cell) {
-    if (used[x][y])
+    if (used[x][y]) {
         return;
+    }
     used[x][y] = true;
     if (field[x][y] == neigh_from) {
         field[x][y] = neigh_to;
         return;
     }
     process_cell(field[x][y]);
-    if (field[x][y] != go_on_from)
+    if (field[x][y] != go_on_from) {
         return;
+    }
     field[x][y] = go_on_to;
     for (const auto[x_neighbour, y_neighbour]: NEIGHBOURS) {
         int x_check = x + x_neighbour;
@@ -135,7 +138,6 @@ ship_set(Battlefield& field, int x, int y, BattlefieldCellState go_on_from, Batt
     ship_dfs_set(used, field, x, y, go_on_from, go_on_to, neigh_from, neigh_to, process_cell);
 }
 
-// Ship is alive if only at least one of its cells is alive
 inline bool is_ship_alive(Battlefield& field, int x, int y) {
     bool result = false;
     ship_set(field, x, y, BattlefieldCellState::Hit, BattlefieldCellState::Hit, BattlefieldCellState::Empty,
@@ -145,11 +147,12 @@ inline bool is_ship_alive(Battlefield& field, int x, int y) {
     return result;
 }
 
-// Ship is alive if only at least one of its cells is alive
 inline void ship_destroy(Battlefield& field, int x, int y, bool mark_locked = false) {
     if (mark_locked) {
         ship_set(field, x, y, BattlefieldCellState::Hit, BattlefieldCellState::Destroyed,
                  BattlefieldCellState::Empty, BattlefieldCellState::Locked, [](BattlefieldCellState) {});
+        ship_set(field, x, y, BattlefieldCellState::Destroyed, BattlefieldCellState::Destroyed,
+                 BattlefieldCellState::Unknown, BattlefieldCellState::Locked, [](BattlefieldCellState) {});
     } else {
         ship_set(field, x, y, BattlefieldCellState::Hit, BattlefieldCellState::Destroyed,
                  BattlefieldCellState::Empty, BattlefieldCellState::Empty, [](BattlefieldCellState) {});
@@ -180,12 +183,12 @@ inline std::pair<int, Battlefield> place_ships_randomly() {
             for (int try_n = 0; try_n < 100; try_n++) {
                 int x = randint() % FIELD_HEIGHT;
                 int y = randint() % FIELD_WIDTH;
-                for (const auto[direction_x, direction_y]: DIRECTIONS) {
+                for (const auto direction: DIRECTIONS) {
                     bool can_place = true;
                     for (int x_part_pos = x;
-                         x_part_pos != x + direction_x * ship.x; x_part_pos += direction_x) {
+                         x_part_pos != x + direction.x * ship.x; x_part_pos += direction.x) {
                         for (int y_part_pos = y;
-                             y_part_pos != y + direction_y * ship.y; y_part_pos += direction_y) {
+                             y_part_pos != y + direction.y * ship.y; y_part_pos += direction.y) {
                             if (is_valid_point(x_part_pos, y_part_pos) &&
                                 my_field[x_part_pos][y_part_pos] == BattlefieldCellState::Empty) {
                                 for (const auto[x_neighbour, y_neighbour]: NEIGHBOURS) {
@@ -208,9 +211,9 @@ inline std::pair<int, Battlefield> place_ships_randomly() {
                     RESULT_FOUND:;
                     if (can_place) {
                         for (int x_part_pos = x;
-                             x_part_pos != x + direction_x * (ship.x); x_part_pos += direction_x) {
+                             x_part_pos != x + direction.x * ship.x; x_part_pos += direction.x) {
                             for (int y_part_pos = y;
-                                 y_part_pos != y + direction_y * (ship.y); y_part_pos += direction_y) {
+                                 y_part_pos != y + direction.y * ship.y; y_part_pos += direction.y) {
                                 my_field[x_part_pos][y_part_pos] = BattlefieldCellState::Ship;
                             }
                         }

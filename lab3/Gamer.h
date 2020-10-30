@@ -7,8 +7,6 @@
 #include "utils.h"
 #include "GameView.h"
 
-std::pair<int, Battlefield> place_ships_randomly();
-
 class AnotherGamer;
 
 class Gamer {

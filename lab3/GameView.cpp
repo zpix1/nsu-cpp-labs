@@ -1,7 +1,6 @@
 #include "GameView.h"
 
 #include <iostream>
-#define DEBUG(x) do { std::cerr << #x << " = " << x << std::endl; } while (0)
 
 void ConsoleGameView::render_field(const Battlefield& field) {
     std::cout << " ";
@@ -19,14 +18,14 @@ void ConsoleGameView::render_field(const Battlefield& field) {
 }
 
 Move ConsoleGameView::ask_for_move() {
-    log("Please enter x, y:");
+    std::cout << "Please enter x, y:" << std::endl;
     int x, y;
     while (true) {
         std::cin >> x >> y;
         if (is_valid_point(x, y)) {
             return Move{x, y};
         } else {
-            log("Invalid x or y. Please try again:");
+            std::cout << "Invalid x or y. Please try again:" << std::endl;
         }
     }
 }
@@ -61,7 +60,6 @@ static auto letter_to_rotation_and_direction(char direction) {
     return std::make_pair(0, Direction{0, 0});
 }
 
-
 static bool try_place_ship(Battlefield& field, Ship ship, int x, int y, Direction direction) {
     bool can_place = true;
     for (int x_part_pos = x;
@@ -75,7 +73,8 @@ static bool try_place_ship(Battlefield& field, Ship ship, int x, int y, Directio
                     int y_check = y_part_pos + y_neighbour;
 
                     if (is_valid_point(x_check, y_check)) {
-                        if (field[x_check][y_check] != BattlefieldCellState::Empty && field[x_check][y_check] != BattlefieldCellState::Locked) {
+                        if (field[x_check][y_check] != BattlefieldCellState::Empty &&
+                            field[x_check][y_check] != BattlefieldCellState::Locked) {
                             can_place = false;
                             goto RESULT_FOUND;
                         }
@@ -107,8 +106,9 @@ std::pair<bool, int> ConsoleGameView::confirm_ship_placement(Battlefield& field)
 
     char result;
     std::cin >> result;
-    if (result != 'Y')
+    if (result != 'Y') {
         return {false, 0};
+    }
 
     for (int i = 0; i < FIELD_HEIGHT; i++) {
         for (int j = 0; j < FIELD_HEIGHT; j++) {
@@ -133,7 +133,8 @@ std::pair<bool, int> ConsoleGameView::confirm_ship_placement(Battlefield& field)
         int user_id;
         char user_direction_letter;
 
-        std::cout << "Which ship and where do you want to place it? (Index [0 to stop], X, Y, Orientation [(U)p, (D)own, (L)eft, (R)ight]):";
+        std::cout
+                << "Which ship and where do you want to place it? (Index [0 to stop], X, Y, Orientation [(U)p, (D)own, (L)eft, (R)ight]):";
         while (true) {
             std::cin >> user_id >> user_x >> user_y >> user_direction_letter;
 
@@ -143,7 +144,7 @@ std::pair<bool, int> ConsoleGameView::confirm_ship_placement(Battlefield& field)
             }
             user_id--;
 
-            auto [rotation, user_direction] = letter_to_rotation_and_direction(user_direction_letter);
+            auto[rotation, user_direction] = letter_to_rotation_and_direction(user_direction_letter);
 
             Ship ship;
             if (!(0 <= user_id && user_id < id)) {
@@ -165,7 +166,8 @@ std::pair<bool, int> ConsoleGameView::confirm_ship_placement(Battlefield& field)
                     break;
                 }
             }
-            std::cout << "Please, try again. Which ship and where do you want to place it? (Index [0 to stop], X, Y, Orientation [(U)p, (D)own, (L)eft, (R)ight]):";
+            std::cout
+                    << "Please, try again. Which ship and where do you want to place it? (Index [0 to stop], X, Y, Orientation [(U)p, (D)own, (L)eft, (R)ight]):";
         }
         if (stop) {
             break;

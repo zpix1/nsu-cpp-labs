@@ -1,6 +1,5 @@
 #include "Gamer.h"
 
-#include <iostream>
 #include <algorithm>
 #include <random>
 
@@ -40,7 +39,7 @@ void UtilityGamer::init(GameView& game_view, const std::pair<int, Battlefield> s
 // Random gamer stuff
 
 std::pair<Move, MoveResult> RandomGamer::make_move(InteractiveGameView&, AnotherGamer& callback_gamer) {
-    const Move move = {static_cast<int>(randint() % FIELD_HEIGHT), static_cast<int>(randint() % FIELD_WIDTH)};
+    const Move move = {randint() % FIELD_HEIGHT, randint() % FIELD_WIDTH};
     return std::pair<Move, MoveResult>{move, callback_gamer.check_move(move)};
 }
 
@@ -50,7 +49,7 @@ void ConsoleGamer::prepare(InteractiveGameView& game_view) {
     for (int i = 0; i < FIELD_HEIGHT; i++) {
         opponent_field.emplace_back(FIELD_WIDTH, BattlefieldCellState::Unknown);
     }
-    auto [result, new_ships_count] = game_view.confirm_ship_placement(my_field);
+    auto[result, new_ships_count] = game_view.confirm_ship_placement(my_field);
     if (result) {
         ships_count = new_ships_count;
     }
@@ -86,18 +85,18 @@ void StrategyGamer::prepare(InteractiveGameView&) {
         opponent_field.emplace_back(FIELD_WIDTH, BattlefieldCellState::Unknown);
     }
 
-    std::vector<int> other1;
+    std::vector<int> other;
 
     for (int field_id = 0; field_id < FIELD_WIDTH * FIELD_HEIGHT; field_id++) {
         int x = field_id / FIELD_HEIGHT;
         int y = field_id % FIELD_WIDTH;
-        if ((x+y) % 2 == 0) {
+        if ((x + y) % 2 == 0) {
             field_cell_order.push_back(field_id);
-        } else if ((x+y) % 2 == 1) {
-            other1.push_back(field_id);
+        } else if ((x + y) % 2 == 1) {
+            other.push_back(field_id);
         }
     }
-    field_cell_order.insert(field_cell_order.end(), other1.begin(), other1.end());
+    field_cell_order.insert(field_cell_order.end(), other.begin(), other.end());
 }
 
 std::pair<Move, MoveResult> StrategyGamer::make_move(InteractiveGameView& game_view, AnotherGamer& callback_gamer) {
