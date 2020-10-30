@@ -74,7 +74,7 @@ void GamingSession::play_game(InteractiveGameView& game_view, std::unique_ptr<Ut
 void GamingSession::print_stats(GameView& game_view) const {
     game_view.log("Games played: " + std::to_string(games_played));
     game_view.log(
-            "A won" + std::to_string(gamer_a_won) + " times, winrate: " + std::to_string(gamer_a_won * 1.0 / games_played));
+            "A won" + std::to_string(gamer_a_won) + " times, winrate: " + std::to_string(gamer_a_won * 100.0 / games_played) + "%");
     game_view.log(
-            "B won" + std::to_string(gamer_b_won) + " times, winrate: " + std::to_string(gamer_b_won * 1.0 / games_played));
+            "B won" + std::to_string(gamer_b_won) + " times, winrate: " + std::to_string(gamer_b_won * 100.0 / games_played) + "%");
 }
