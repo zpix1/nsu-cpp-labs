@@ -12,7 +12,7 @@ add_executable(game
         Gamer.cpp
         main.cpp utils.h GameView.cpp GamingSession.cpp GamingSession.h)
 
-#enable_testing()
+enable_testing()
 add_executable(tests test/test.cpp thirdparty/fakeit.hpp GamingSession.cpp GamingSession.h)
 target_link_libraries(tests lab3)
 add_test(tests tests)

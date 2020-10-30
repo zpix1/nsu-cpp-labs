@@ -61,30 +61,6 @@ static auto letter_to_rotation_and_direction(char direction) {
     return std::make_pair(0, Direction{0, 0});
 }
 
-static void ship_dfs_mark(std::vector<std::vector<bool>>& used, Battlefield& field, int x, int y) {
-    if (used[x][y])
-        return;
-    used[x][y] = true;
-    if (field[x][y] == BattlefieldCellState::Empty) {
-        field[x][y] = BattlefieldCellState::Locked;
-        return;
-    }
-    if (field[x][y] != BattlefieldCellState::Ship)
-        return;
-    for (const auto[x_neighbour, y_neighbour]: NEIGHBOURS) {
-        int x_check = x + x_neighbour;
-        int y_check = y + y_neighbour;
-        if (is_valid_point(x_check, y_check)) {
-            ship_dfs_mark(used, field, x_check, y_check);
-        }
-    }
-}
-
-// Ship is alive if only at least one of its cells is alive
-static void ship_mark(Battlefield& field, int x, int y) {
-    std::vector<std::vector<bool>> used(FIELD_HEIGHT, std::vector<bool>(FIELD_WIDTH));
-    ship_dfs_mark(used, field, x, y);
-}
 
 static bool try_place_ship(Battlefield& field, Ship ship, int x, int y, Direction direction) {
     bool can_place = true;

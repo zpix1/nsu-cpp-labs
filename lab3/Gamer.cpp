@@ -4,121 +4,6 @@
 #include <algorithm>
 #include <random>
 
-static bool ship_dfs_is_alive(std::vector<std::vector<bool>>& used, const Battlefield& field, int x, int y) {
-    if (used[x][y])
-        return false;
-    used[x][y] = true;
-
-    if (field[x][y] == BattlefieldCellState::Ship)
-        return true;
-    if (field[x][y] != BattlefieldCellState::Hit)
-        return false;
-    bool is_alive = false;
-    for (const auto[x_neighbour, y_neighbour]: NEIGHBOURS) {
-        int x_check = x + x_neighbour;
-        int y_check = y + y_neighbour;
-        if (is_valid_point(x_check, y_check)) {
-            is_alive = is_alive || ship_dfs_is_alive(used, field, x_check, y_check);
-        }
-    }
-    return is_alive;
-}
-
-// Ship is alive if only at least one of its cells is alive
-static bool is_ship_alive(const Battlefield& field, int x, int y) {
-    std::vector<std::vector<bool>> used(FIELD_HEIGHT, std::vector<bool>(FIELD_WIDTH));
-    return ship_dfs_is_alive(used, field, x, y);
-}
-
-static void ship_dfs_destroy(std::vector<std::vector<bool>>& used, Battlefield& field, int x, int y, bool mark_locked) {
-    if (used[x][y])
-        return;
-    used[x][y] = true;
-    if (field[x][y] == BattlefieldCellState::Unknown) {
-        field[x][y] = BattlefieldCellState::Locked;
-        return;
-    }
-    if (field[x][y] != BattlefieldCellState::Hit)
-        return;
-    field[x][y] = BattlefieldCellState::Destroyed;
-    for (const auto[x_neighbour, y_neighbour]: NEIGHBOURS) {
-        int x_check = x + x_neighbour;
-        int y_check = y + y_neighbour;
-        if (is_valid_point(x_check, y_check)) {
-            ship_dfs_destroy(used, field, x_check, y_check, mark_locked);
-        }
-    }
-}
-
-// Ship is alive if only at least one of its cells is alive
-static void ship_destroy(Battlefield& field, int x, int y, bool mark_locked = false) {
-    std::vector<std::vector<bool>> used(FIELD_HEIGHT, std::vector<bool>(FIELD_WIDTH));
-    ship_dfs_destroy(used, field, x, y, mark_locked);
-}
-
-std::pair<int, Battlefield> place_ships_randomly() {
-    Battlefield my_field;
-    for (int i = 0; i < FIELD_HEIGHT; i++) {
-        my_field.emplace_back(FIELD_WIDTH, BattlefieldCellState::Empty);
-    }
-
-    int ships_placed = 0;
-    for (const auto& base_ship: SHIPS) {
-        std::vector<Ship> ship_rotations{base_ship};
-        if (base_ship.x != base_ship.y) {
-            ship_rotations.push_back({base_ship.y, base_ship.x});
-        }
-        std::shuffle(ship_rotations.begin(), ship_rotations.end(), std::mt19937(std::random_device()()));
-
-        for (const auto& ship: ship_rotations) {
-            for (int try_n = 0; try_n < 100; try_n++) {
-                int x = randint() % FIELD_HEIGHT;
-                int y = randint() % FIELD_WIDTH;
-                for (const auto[direction_x, direction_y]: DIRECTIONS) {
-                    bool can_place = true;
-                    for (int x_part_pos = x;
-                         x_part_pos != x + direction_x * ship.x; x_part_pos += direction_x) {
-                        for (int y_part_pos = y;
-                             y_part_pos != y + direction_y * ship.y; y_part_pos += direction_y) {
-                            if (is_valid_point(x_part_pos, y_part_pos) &&
-                                my_field[x_part_pos][y_part_pos] == BattlefieldCellState::Empty) {
-                                for (const auto[x_neighbour, y_neighbour]: NEIGHBOURS) {
-                                    int x_check = x_part_pos + x_neighbour;
-                                    int y_check = y_part_pos + y_neighbour;
-
-                                    if (is_valid_point(x_check, y_check)) {
-                                        if (my_field[x_check][y_check] != BattlefieldCellState::Empty) {
-                                            can_place = false;
-                                            goto RESULT_FOUND;
-                                        }
-                                    }
-                                }
-                            } else {
-                                can_place = false;
-                                goto RESULT_FOUND;
-                            }
-                        }
-                    }
-                    RESULT_FOUND:;
-                    if (can_place) {
-                        for (int x_part_pos = x;
-                             x_part_pos != x + direction_x * (ship.x); x_part_pos += direction_x) {
-                            for (int y_part_pos = y;
-                                 y_part_pos != y + direction_y * (ship.y); y_part_pos += direction_y) {
-                                my_field[x_part_pos][y_part_pos] = BattlefieldCellState::Ship;
-                            }
-                        }
-                        ships_placed++;
-                        goto NEW_SHIP;
-                    }
-                }
-            }
-        }
-        NEW_SHIP:;
-    }
-    return std::make_pair(ships_placed, my_field);
-}
-
 // Utility gamer stuff
 
 MoveResult UtilityGamer::check_move(Move move) {
@@ -201,17 +86,18 @@ void StrategyGamer::prepare(InteractiveGameView&) {
         opponent_field.emplace_back(FIELD_WIDTH, BattlefieldCellState::Unknown);
     }
 
-    std::vector<int> other;
+    std::vector<int> other1;
+
     for (int field_id = 0; field_id < FIELD_WIDTH * FIELD_HEIGHT; field_id++) {
         int x = field_id / FIELD_HEIGHT;
         int y = field_id % FIELD_WIDTH;
-        if ((x + y) % 2 == 0) {
+        if ((x+y) % 2 == 0) {
             field_cell_order.push_back(field_id);
-        } else {
-            other.push_back(field_id);
+        } else if ((x+y) % 2 == 1) {
+            other1.push_back(field_id);
         }
     }
-    field_cell_order.insert(field_cell_order.end(), other.begin(), other.end());
+    field_cell_order.insert(field_cell_order.end(), other1.begin(), other1.end());
 }
 
 std::pair<Move, MoveResult> StrategyGamer::make_move(InteractiveGameView& game_view, AnotherGamer& callback_gamer) {
