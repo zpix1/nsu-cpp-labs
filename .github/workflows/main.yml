@@ -16,7 +16,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest ] # windows-latest, macOS-latest
-        dir: [ lab1, lab2 ]
+        dir: [ lab1, lab2, lab3 ]
 
     steps:
       - uses: actions/checkout@v1
