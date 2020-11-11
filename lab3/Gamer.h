@@ -18,7 +18,10 @@ public:
     virtual void init(GameView& game_view, std::pair<int, Battlefield> ships_count_with_field) = 0;
 
     virtual void prepare(InteractiveGameView& game_view) = 0;
+
+    virtual ~Gamer() = default;
 };
+
 
 class AnotherGamer : public Gamer {
 public:

@@ -9,6 +9,8 @@ public:
     virtual void render_field(const Battlefield& field) = 0;
 
     virtual void log(const std::string& message) = 0;
+
+    virtual ~GameView() = default;
 };
 
 class InteractiveGameView : public GameView {
