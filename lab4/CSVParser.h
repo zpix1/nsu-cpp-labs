@@ -20,9 +20,17 @@ namespace CSVParser {
         [[nodiscard]] inline const char *what() const noexcept override {
             return error_message.c_str();
         }
+
+        [[nodiscard]] auto get_line_idx() const {
+            return line_idx;
+        }
+
+        [[nodiscard]] auto get_char_idx() const {
+            return char_idx;
+        }
     };
 
-    template<typename ...Types>
+    template<class ...Types>
     struct CSVParserIterator;
 
     template<class ...Types>
@@ -30,7 +38,10 @@ namespace CSVParser {
         unsigned int lines_to_skip;
         bool lines_skipped = false;
         bool is_done = false;
-        unsigned int current_line_idx = 1;
+        unsigned int current_line_idx = 0;
+
+        char delimiter;
+        char escape;
 
         std::istream& ifs;
         std::tuple<Types...> current_value;
@@ -45,20 +56,50 @@ namespace CSVParser {
         bool done();
 
     public:
-        explicit CSVParser(std::istream& ifs, const int lines_to_skip = 0) : ifs(ifs), lines_to_skip(lines_to_skip) {}
+        explicit CSVParser(std::istream& ifs,
+                           const int lines_to_skip = 0,
+                           const char delimiter = ',',
+                           const char escape = '"') :
+                ifs(ifs),
+                lines_to_skip(lines_to_skip),
+                delimiter(delimiter),
+                escape(escape) {}
 
         friend CSVParserIterator<Types...>;
     };
 
+    template<class T>
+    bool read_from_to(std::stringstream& stream, T& to) {
+        return static_cast<bool>(stream >> to);
+    }
+
+    bool read_from_to(std::stringstream& stream, std::string& to) {
+        std::getline(stream, to);
+        return static_cast<bool>(stream);
+    }
+
     template<class... Types>
     template<class T>
     void CSVParser<Types...>::read(std::stringstream& linestream, T& where) {
-        std::string scanstring;
-        std::getline(linestream, scanstring, ',');
-        std::stringstream scanner{scanstring};
-        if (!(scanner >> where)) {
-            throw ParsingException("scanning failed", current_line_idx, 0);
+        int start_idx = linestream.tellg();
+
+        char c;
+        linestream >> c;
+        if (c != escape) {
+            linestream.putback(c);
         }
+
+        std::string scanstring;
+        std::getline(linestream, scanstring, c == escape ? escape : delimiter);
+        std::stringstream scanner{scanstring};
+        if (!read_from_to(scanner, where)) {
+            throw ParsingException("incompatible type", current_line_idx, start_idx + 1);
+        }
+        if (!scanner.eof()) {
+            throw ParsingException("unexpected garbage at the end of the cell", current_line_idx,
+                                   static_cast<int>(scanner.tellg()) + start_idx + 1);
+        }
+        linestream.ignore(1);
     }
 
     template<class... Types>
@@ -97,7 +138,7 @@ namespace CSVParser {
         return is_done;
     }
 
-    template<typename ...Types>
+    template<class ...Types>
     struct CSVParserIterator {
         using iterator_category = std::input_iterator_tag;
         using value_type = std::tuple<Types...>;
@@ -162,7 +203,7 @@ namespace CSVParser {
         return ++it;
     }
 
-    template<typename ...Types>
+    template<class ...Types>
     CSVParserIterator<Types...> end(CSVParser<Types...>&) {
         return {nullptr};
     }
